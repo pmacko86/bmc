@@ -1,7 +1,7 @@
-#Bible Memorization by Chapter
+# Bible Memorization by Chapter
 
 
-##Instructions for the Web App
+## Instructions for the Web App
 
 For local development, you can start the web app using:
 ```
@@ -14,7 +14,7 @@ yarn build-web
 ```
 
 
-##Instructions for iOS and Android
+## Instructions for iOS and Android
 
 The app uses Expo. To start it, please run:
 ```

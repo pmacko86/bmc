@@ -37,6 +37,7 @@ extends React.Component<BookChooserProps, BookChooserState> {
       {this.props.items.map((item, i) => {
         return (
           <TouchableHighlight
+            key={item}
             onPress={e => {
               if (this.props.onChoose) this.props.onChoose(item);
             }}
