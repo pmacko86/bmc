@@ -7,7 +7,7 @@
     "test": "jest",
     "start-web": "react-scripts start",
     "build-web": "react-scripts build",
-    "predeploy": "npm run build",
+    "predeploy": "yarn build-web",
     "deploy": "gh-pages -d build"
   },
   "dependencies": {

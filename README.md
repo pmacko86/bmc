@@ -13,6 +13,11 @@ To build a web package:
 yarn build-web
 ```
 
+To publish the web app:
+```
+npm run deploy
+```
+
 
 ## Instructions for iOS and Android
 
