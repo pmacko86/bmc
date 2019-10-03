@@ -28,7 +28,7 @@
     "@types/react-native": "^0.57.65",
     "babel-preset-expo": "^6.0.0",
     "jest-expo": "^34.0.0",
-    "typescript": "^3.4.5"
+    "typescript": "^3.6.3"
   },
   "homepage": "http://pmacko86.github.io/bmc",
   "jest": {
