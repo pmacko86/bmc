@@ -2,7 +2,15 @@
 <html>
    <head>
       <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>The BMC App</title>
+      <style>
+        /* Remove highlight from editable items in Safari */
+        input:focus, select:focus, textarea:focus, button:focus,
+        [contenteditable="true"]:focus {
+            outline: none;
+        }
+      </style>
    </head>
    <body>
       <div id="root"></div>
