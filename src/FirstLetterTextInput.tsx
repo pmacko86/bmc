@@ -164,6 +164,8 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
                 left: this.state.index === 0 ? 0 : 4
               }}
               onKeyPress={this.handleKeyPress}
+              autoCompleteType={"off"}
+              autoCorrect={false}
               autoFocus={true}
               editable={true}
               selectTextOnFocus={false}
