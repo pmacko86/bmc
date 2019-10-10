@@ -8,6 +8,7 @@ import {
   TouchableHighlight,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import BmcTextInput from './BmcTextInput';
 import BookChooser from './BookChooser';
 import * as BMC from './BmcData';
@@ -69,7 +70,7 @@ extends React.Component<MainProps, MainState> {
   render() {
     if (!this.state.book) {
       return (
-        <View>
+        <SafeAreaView style={{ flex: 1 }}>
           <Text
             style={styles.header}
             >Choose a book to study.</Text>
@@ -80,16 +81,20 @@ extends React.Component<MainProps, MainState> {
               onChoose={this.handleBookChoose}
               />
           </ScrollView>
-        </View>
+        </SafeAreaView>
       );
     }
     else {
       return (
-        <View>
+        <SafeAreaView
+          style={{
+            flex: 1,
+            flexDirection: "column",
+          }}
+          >
           <View
             style={[styles.header, {
-              flex: 1,
-              flexDirection: "row"
+              flexDirection: "row",
             }]}
             >
             <TouchableHighlight
@@ -104,18 +109,27 @@ extends React.Component<MainProps, MainState> {
               >{this.state.book.title}</Text>
           </View>
           <Text
-            style={styles.instructions}
+            style={[{
+              flexGrow: 0,
+            }, styles.instructions]}
             >Please type just the first letter.</Text>
-          <ScrollView>
-            <BmcTextInput
-              allowBackspace={true}
-              displayAllItems={true}
-              displayAllTextInItem={true}
-              items={this.state.book.items}
-              style={styles.test}
-              />
-          </ScrollView>
-        </View>
+          <KeyboardAvoidingView behavior={"padding"}>
+            <ScrollView
+              style={{
+                flexGrow: 1,
+              }}
+              keyboardShouldPersistTaps={"handled"}
+              >
+              <BmcTextInput
+                allowBackspace={true}
+                displayAllItems={true}
+                displayAllTextInItem={true}
+                items={this.state.book.items}
+                style={styles.test}
+                />
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       );
     }
   }
@@ -124,12 +138,8 @@ extends React.Component<MainProps, MainState> {
 
 export default function App() {
   return (
-    <SafeAreaView>
-      <KeyboardAvoidingView behavior={"padding"}>
-        <Main
-          library={BMC.BMC_DATA}
-          />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    <Main
+      library={BMC.BMC_DATA}
+      />
   );
 }

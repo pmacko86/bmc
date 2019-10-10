@@ -70,7 +70,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
   }
 
   handlePress(event: GestureResponderEvent) {
-    this.focus();
+    setTimeout(() => this.focus(), 25);
   }
 
   handleKeyPress(event: NativeSyntheticEvent<TextInputKeyPressEventData>) {
