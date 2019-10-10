@@ -8,7 +8,6 @@ import {
   TouchableHighlight,
   View,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import BmcTextInput from './BmcTextInput';
 import BookChooser from './BookChooser';
 import * as BMC from './BmcData';

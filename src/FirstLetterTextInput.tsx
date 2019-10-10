@@ -66,11 +66,15 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
   }
 
   focus() {
-    if (this.input != null) this.input.focus();
+    if (this.input != null) {
+      this.input.focus();
+    }
   }
 
   handlePress(event: GestureResponderEvent) {
-    setTimeout(() => this.focus(), 25);
+    event.stopPropagation();
+    event.preventDefault();
+    this.focus();
   }
 
   handleKeyPress(event: NativeSyntheticEvent<TextInputKeyPressEventData>) {
