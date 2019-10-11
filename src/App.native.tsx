@@ -1,12 +1,14 @@
+import React from 'react';
 import HomeScreen from './HomeScreen';
 import StudyScreen from './StudyScreen';
 
 // @ts-ignore
 // eslint-disable-next-line
 import { createSwitchNavigator } from "@react-navigation/core";
-// @ts-ignore
 // eslint-disable-next-line
-import { createBrowserApp } from '@react-navigation/web';
+import { createStackNavigator } from 'react-navigation-stack';
+// eslint-disable-next-line
+import { createAppContainer } from 'react-navigation';
 
 
 const routes: {} = {
@@ -14,9 +16,9 @@ const routes: {} = {
   Study: {screen: StudyScreen},
 }
 
-const MainNavigator = createSwitchNavigator(routes, {
-  backBehavior: "history",
+const MainNavigator = createStackNavigator(routes, {
+  headerMode: "none",
 });
 
-const App = createBrowserApp(MainNavigator);
+const App = createAppContainer(MainNavigator);
 export default App;
