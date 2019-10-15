@@ -12,19 +12,19 @@ import TopBar from './TopBar';
 import * as BMC from './BmcData';
 
 
-type StudyScreenProps = {
+type TestScreenProps = {
   navigation: NavigationStackProp<{ book: string }>;
 }
 
 
-type StudyScreenState = {
+type TestScreenState = {
 }
 
 
-export default class StudyScreen
-extends React.Component<StudyScreenProps, StudyScreenState> {
+export default class TestScreen
+extends React.Component<TestScreenProps, TestScreenState> {
 
-  constructor(props: StudyScreenProps) {
+  constructor(props: TestScreenProps) {
     super(props);
     this.state = {}
   }
@@ -56,8 +56,8 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
             >
             <BmcTextInput
               allowBackspace={true}
-              displayAllItems={true}
-              displayAllTextInItem={true}
+              displayAllItems={false}
+              displayAllTextInItem={false}
               items={book.items}
               />
           </ScrollView>

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import FirstLetterTextInput from './FirstLetterTextInput';
 import * as BMC from './BmcData';
+import STYLES from './Styles';
 
 
 type BmcTextInputProps = {
@@ -12,7 +13,6 @@ type BmcTextInputProps = {
   displayAllItems?: boolean;
   displayAllTextInItem?: boolean;
   items: BMC.BmcItem[];
-  style: {};
 }
 
 
@@ -41,13 +41,24 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
   render() {
     return (
       <View
-        style={[this.props.style, {
+        style={[{}, {
           alignItems: "flex-start",
           flexDirection: "column",
         }]}
       >
       {this.props.items.map((item, i) => {
-        let s = "" + item.chapter + ".";
+        let s = "";
+        if (i === 0) {
+          s += item.chapter;
+        }
+        else {
+          const previous = this.props.items[i-1];
+          if (previous.chapter !== item.chapter) {
+            s += item.chapter;
+          }
+        }
+        if (item.part) s += item.part;
+        s += ".";
         if (!this.props.displayAllItems) {
           // XXX This causes the keyboard to flicker on backspace
           if (i > this.state.index) return null;
@@ -61,11 +72,11 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
             }}
             >
             <Text
-              style={{
+              style={[STYLES.bmcTextChapter, {
                 flexShrink: 0,
                 textAlign: "right",
-                width: 40,
-              }}
+                width: 45,
+              }]}
               >{s + "  "}</Text>
             <FirstLetterTextInput
               ref={r => { if (r != null) this.itemInputs[i] = r; }}
@@ -73,7 +84,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
               displayAll={this.props.displayAllTextInItem}
               readOnly={this.state.index !== i
                 && this.state.previousIndex !== i}
-              style={this.props.style}
+              style={STYLES.test}
               text={item.label}
               onCompletion={() => {
                 if (i + 1 < this.itemInputs.length) {

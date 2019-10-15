@@ -4,12 +4,12 @@ import {
   TouchableHighlight,
   View
 } from 'react-native';
+import STYLES from './Styles';
 
 
 type BookChooserProps = {
   items: string[];
   onChoose?: (book: string) => void;
-  style: {};
 }
 
 
@@ -29,7 +29,7 @@ extends React.Component<BookChooserProps, BookChooserState> {
   render() {
     return (
       <View
-        style={[this.props.style, {
+        style={[STYLES.actionList, {
           alignItems: "flex-start",
           flexDirection: "column",
         }]}
@@ -42,7 +42,7 @@ extends React.Component<BookChooserProps, BookChooserState> {
               if (this.props.onChoose) this.props.onChoose(item);
             }}
             >
-            <Text>{item}</Text>
+            <Text style={STYLES.actionListItem}>{item}</Text>
           </TouchableHighlight>
         )
       })}

@@ -1,33 +1,13 @@
 import React from 'react';
 import {
-  StyleSheet,
   SafeAreaView,
   ScrollView,
-  Text,
 } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import TopBar from './TopBar';
 
 import BookChooser from './BookChooser';
 import * as BMC from './BmcData';
-
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: "#000",
-    color: "#fff",
-    padding: 4,
-  },
-  instructions: {
-    backgroundColor: "#ccc",
-    //borderBottom: "solid thin #000",
-    color: "#000",
-    padding: 4,
-  },
-  test: {
-    backgroundColor: "#fff",
-    color: "#000",
-    padding: 4,
-  }
-});
 
 type HomeScreenProps = {
   navigation: NavigationStackProp;
@@ -50,20 +30,21 @@ extends React.Component<HomeScreenProps, HomeScreenState> {
 
 
   handleBookChoose(book: string) {
-    this.props.navigation.navigate("Study", { book: book });
+    this.props.navigation.navigate("BookAction", { book: book });
   }
 
 
   render() {
     return (
       <SafeAreaView style={{ flex: 1 }}>
-        <Text
-          style={styles.header}
-          >Choose a book to study.</Text>
+        <TopBar
+          hideBack={true}
+          navigation={this.props.navigation as unknown as NavigationStackProp}
+          text={"Choose a book to study"}
+          />
         <ScrollView>
           <BookChooser
             items={this.bookItems}
-            style={styles.test}
             onChoose={this.handleBookChoose}
             />
         </ScrollView>

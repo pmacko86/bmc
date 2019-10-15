@@ -78,6 +78,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
   }
 
   handleKeyPress(event: NativeSyntheticEvent<TextInputKeyPressEventData>) {
+    event.stopPropagation();
     event.preventDefault();
     /*if (event.nativeEvent.metaKey || event.nativeEvent.altKey
       || event.nativeEvent.ctrlKey) event.preventDefault();*/
