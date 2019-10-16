@@ -15,6 +15,168 @@ export type BmcLibrary = {
 }
 
 
+const BMC_MATTHEW : BmcBook = {
+  title: "Matthew",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Genealogy, Birth of Jesus"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Magi, King Herod"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "John the Baptist, Baptism of Jesus"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Temptations of Jesus"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Beatitudes"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "APF (Alms, Prayer, Fasting)"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "ASK (Ask, Seek, Knock)"
+    },
+    {
+      chapter: 8,
+      part: "a",
+      label: "Centurion"
+    },
+    {
+      chapter: 8,
+      part: "b",
+      label: "Storm"
+    },
+    {
+      chapter: 8,
+      part: "c",
+      label: "Legion"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "BPB (Bleeding Woman, Paralytic, Blind Man)"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Twelve Disciples"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Kingdom Invasion"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Sabbath"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "PK (Parables of Kingdom)"
+    },
+    {
+      chapter: 14,
+      part: "a",
+      label: "5-2 (5 Loaves, 2 Fish)"
+    },
+    {
+      chapter: 14,
+      part: "b",
+      label: "WOW (Walking on Water)"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "7-2"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Peter's Confession"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Transfiguration"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Little Children"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Rich Young Ruler"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Eleventh Hour Workers"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Entering Jerusalem"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Greatest Commandment"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Seven Woes"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "ETS (End Times Signs)"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "TV (Talents, Virgins)"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Arrest, Peter's Denial"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Death on the Cross"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Resurrection, Commission"
+    },
+  ]
+};
+
+
 const BMC_LUKE : BmcBook = {
   title: "Luke",
   items: [
@@ -159,6 +321,7 @@ const BMC_LUKE : BmcBook = {
 
 export const BMC_DATA : BmcLibrary = {
   contents: [
-    BMC_LUKE
+    BMC_MATTHEW,
+    BMC_LUKE,
   ]
 };
