@@ -3,6 +3,7 @@ export type BmcItem = {
   chapter: number,
   part: string | null,
   label: string,
+  heading?: string,
 }
 
 export type BmcBook = {
@@ -319,9 +320,103 @@ const BMC_LUKE : BmcBook = {
 };
 
 
+const BMC_ROMANS : BmcBook = {
+  title: "Romans",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      heading: "Doctrine of Sin",
+      label: "Sin of Gentiles"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Sin of Jews"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Sin of all Mankind"
+    },
+    {
+      chapter: 4,
+      part: null,
+      heading: "Doctrine of Salvation",
+      label: "Justification by Faith 1"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Justification by Faith 2"
+    },
+    {
+      chapter: 6,
+      part: null,
+      heading: "Doctrine of Sanctification",
+      label: "Baptism"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Law"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Spirit"
+    },
+    {
+      chapter: 9,
+      part: null,
+      heading: "Doctrine of Blessings for Israel",
+      label: "Past"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Present"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Future"
+    },
+    {
+      chapter: 12,
+      part: null,
+      heading: "Practice",
+      label: "Believers' Life in Church"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Believers' Life in Society"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Believers' Life with One Another"
+    },
+    {
+      chapter: 15,
+      part: null,
+      heading: "",
+      label: "Summary"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Greetings"
+    },
+  ]
+};
+
+
 export const BMC_DATA : BmcLibrary = {
   contents: [
     BMC_MATTHEW,
     BMC_LUKE,
+    BMC_ROMANS,
   ]
 };

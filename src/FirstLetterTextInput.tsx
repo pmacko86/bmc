@@ -22,7 +22,10 @@ type FirstLetterTextInputProps = {
   allowBackspace?: boolean;
   displayAll?: boolean;
   readOnly?: boolean;
-  style: {};
+  style?: {};
+  correctStyle?: {};
+  incorrectStyle?: {};
+  unseenStyle?: {};
   text: string;
   onCompletion?: () => void;
   onTopBackspace?: () => void;
@@ -197,17 +200,14 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     const currentWord = this.state.index < this.words.length
       ? this.words[this.state.index] : null;
     const style = {
-      input: {
-        //border: 'none'
-      },
       correct: {
         color: "black"
       },
-      wrong: {
+      incorrect: {
         color: "red"
       },
       unseen: {
-        color: "#EEE"
+        color: "#AAA"
       },
     }
     return (
@@ -218,6 +218,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
           flexDirection: 'row',
           flexShrink: 1,
           flexWrap: 'wrap',
+          padding: 4,
         }]}
       >
         <Text></Text>
@@ -232,7 +233,11 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
                   if (i === this.state.index
                     && j >= this.state.charIndex) return null;
                   return <Text key={j}
-                    style={correct ? style.correct : style.wrong }
+                    style={[
+                      correct ? style.correct : style.incorrect,
+                      correct ? this.props.correctStyle
+                        : this.props.incorrectStyle,
+                    ]}
                     >{w.word[j]}</Text>
                 }
               )
@@ -244,7 +249,11 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
             return (
               <Text
                 key={i}
-                style={correct ? style.correct : style.wrong }
+                style={[
+                  correct ? style.correct : style.incorrect,
+                  correct ? this.props.correctStyle
+                    : this.props.incorrectStyle,
+                ]}
                   >{(i > 0 ? " " : "") + w.word}</Text>
             )
           }
@@ -285,10 +294,14 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
           return (
             <Text key={i}
               selectable={this.props.displayAll}
-              style={[{
-                color: this.props.displayAll ? "#AAA" : "#00000000",
-                marginLeft: i === this.state.index && !readOnly ? -5 : 0
-              }/*, style.unseen*/]}
+              style={[
+                {
+                  color: this.props.displayAll ? "inherit" : "#00000000",
+                  marginLeft: i === this.state.index && !readOnly ? -5 : 0
+                },
+                this.props.displayAll ? style.unseen : null,
+                this.props.displayAll ? this.props.unseenStyle : null,
+              ]}
               >{(noSpace ? "" : " ") + w.word.substr(fromIndex)}</Text>
           )
         })}
