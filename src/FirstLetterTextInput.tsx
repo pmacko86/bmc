@@ -2,8 +2,10 @@ import React from 'react';
 import {
   GestureResponderEvent,
   NativeSyntheticEvent,
+  Platform,
   Text,
   TextInput,
+  TextInputChangeEventData,
   TextInputKeyPressEventData,
   TouchableWithoutFeedback,
   View
@@ -36,6 +38,7 @@ type FirstLetterTextInputState = {
   index: number;
   charIndex: number;
   correct: boolean[][];
+  keyPressCount: number;
 }
 
 
@@ -50,11 +53,20 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
 
   words: FirstLetterTextInputWord[];
   input: TextInput | null;
+  editlockLocked: boolean;
+  editlockTimeMS: number;
+  editlockTimeoutMS: number;
+  editlockTimeoutSafetyMS: number;
 
   constructor(props: FirstLetterTextInputProps) {
     super(props);
 
     this.input = null;
+
+    this.editlockLocked = false;
+    this.editlockTimeMS = 0;
+    this.editlockTimeoutMS = 25;
+    this.editlockTimeoutSafetyMS = 100;
 
     const textParts = props.text.split(" ");
     const n = textParts.length;
@@ -71,10 +83,12 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     this.state = {
       index: 0,
       charIndex: 0,
-      correct: new Array<boolean[]>(n)
+      correct: new Array<boolean[]>(n),
+      keyPressCount: 0,
     }
 
     this.handlePress = this.handlePress.bind(this);
+    this.handleChange = this.handleChange.bind(this);
     this.handleKeyPress = this.handleKeyPress.bind(this);
   }
 
@@ -113,10 +127,45 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     this.focus();
   }
 
+  handleChange(event: NativeSyntheticEvent<TextInputChangeEventData>) {
+    event.stopPropagation();
+    event.preventDefault();
+    let key = event.nativeEvent.text.toLowerCase();
+    this.handleKey(key);
+  }
+
   handleKeyPress(event: NativeSyntheticEvent<TextInputKeyPressEventData>) {
     event.stopPropagation();
     event.preventDefault();
     let key = event.nativeEvent.key.toLowerCase();
+    this.handleKey(key);
+  }
+
+  temporaryEventLock() {
+    let t = (new Date()).getTime();
+    this.editlockTimeMS = t;
+    this.editlockLocked = true;
+    setTimeout(
+      () => { this.editlockLocked = false; },
+      this.editlockTimeoutMS);
+  }
+
+  handleKey(key: string) {
+
+    if (this.editlockLocked) {
+      let t = (new Date()).getTime();
+      if (this.editlockTimeMS + this.editlockTimeoutSafetyMS < t) {
+        this.editlockLocked = false;
+      }
+      else {
+        return;
+      }
+    }
+    else {
+      this.temporaryEventLock();
+    }
+
+    this.setState((s) => { return { keyPressCount: s.keyPressCount + 1 }});
 
     if (key === "backspace" && this.props.allowBackspace) {
       this.backspace();
@@ -196,6 +245,8 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
   }
 
   render() {
+    const isAndroidWeb = navigator && navigator.userAgent
+      ? navigator.userAgent.indexOf("Android") >= 0 : false;
     const readOnly = this.props.readOnly !== undefined && this.props.readOnly;
     const currentWord = this.state.index < this.words.length
       ? this.words[this.state.index] : null;
@@ -261,15 +312,21 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         {readOnly ? null : (
             <TextInput
               ref={r => this.input = r}
-              style={{
+              style={[{
                 margin: 0,
                 padding: 0,
                 position: "relative",
                 width: 5,
                 left: this.state.index === 0
-                  || (currentWord && currentWord.byLetter) ? 0 : 4
-              }}
+                  || (currentWord && currentWord.byLetter) ? 0 : 4,
+              },
+              Platform.OS === "android"
+                && this.state.index === this.words.length
+                ? { color: "#00000000" } : undefined,
+              Platform.OS === "android"
+                ? { height: 18 /* XXX do not hardcode! */ } : undefined]}
               onKeyPress={this.handleKeyPress}
+              onChange={this.handleChange}
               autoCompleteType={"off"}
               autoCorrect={false}
               autoFocus={true}
@@ -277,7 +334,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
               selectTextOnFocus={false}
               caretHidden={false}
               value={""}
-              maxLength={0}
+              maxLength={isAndroidWeb || Platform.OS === "android" ? 1 : 0}
               secureTextEntry={false}
               textContentType={"none"}
               autoCapitalize={"characters"}
