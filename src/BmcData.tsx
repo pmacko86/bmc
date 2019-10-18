@@ -418,7 +418,7 @@ const BMC_REVELATION : BmcBook = {
     {
       chapter: 1,
       part: null,
-      label: "Revelation of John"
+      label: "Revelation of Jesus"
     },
     {
       chapter: 2,
@@ -493,7 +493,7 @@ const BMC_REVELATION : BmcBook = {
     {
       chapter: 16,
       part: null,
-      label: "Judgment of 7 bowls"
+      label: "Judgment of 7 Bowls"
     },
     {
       chapter: 17,
