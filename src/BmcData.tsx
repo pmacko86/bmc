@@ -412,11 +412,138 @@ const BMC_ROMANS : BmcBook = {
   ]
 };
 
+const BMC_REVELATION : BmcBook = {
+  title: "Revelation",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Revelation of John"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Churches 1: ESPT (Ephesus, Smyrna, Pergamum, Thyatira)"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Churches 2: SPL (Sardis, Philadelphia, Laodicea)"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Throne of God"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "The Lamb"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Judgment of 7 Seals"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "144,000 of Israel Saved, Countless Multitudes of Gentiles"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Judgment of 7 Trumpets 1"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Judgment of 7 Trumpets 2"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "The Little Scroll"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "The Last Trumpet"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "The Woman and the Dragon"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Two Beasts"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "The 144,000 of the Sealed"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Song of Salvation"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Judgment of 7 bowls"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Judgment for the Great Prostitute"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Judgment for the Great Babylon"
+    },
+    {
+      chapter: 19,
+      part: "a",
+      label: "Marriage Supper of the Lamb"
+    },
+    {
+      chapter: 19,
+      part: "b",
+      label: "Lake-of-Fire Judgment for Beast and False Prophet"
+    },
+    {
+      chapter: 20,
+      part: "a",
+      label: "Millennial Kingdom"
+    },
+    {
+      chapter: 20,
+      part: "b",
+      label: "Lake-of-Fire Judgment for Satan and Unbelievers"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "New Heaven, New Earth, New Jerusalem"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Reigning with Jesus as Kings"
+    },
+  ]
+};
+
 
 export const BMC_DATA : BmcLibrary = {
   contents: [
     BMC_MATTHEW,
     BMC_LUKE,
     BMC_ROMANS,
+    BMC_REVELATION,
   ]
 };
