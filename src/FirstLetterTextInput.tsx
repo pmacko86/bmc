@@ -16,8 +16,9 @@ import {
 // flexible. This way, also backspace would work better, since currently
 // it has problems if the word contains "-" and it is byLetter.
 
-// TODO: The spaces should be separate text elements or go after
-// the words, not before.
+// TODO: Optional words, e.g. "the"
+// TODO: Numbers and numerals should be typed interchangeably
+// TODO: Account for keyboard distance, especially on small devices
 
 
 type FirstLetterTextInputProps = {
@@ -68,13 +69,22 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     this.editlockTimeoutMS = 25;
     this.editlockTimeoutSafetyMS = 100;
 
-    const textParts = props.text.split(" ");
+    const textParts = props.text
+      .replace(/---/g, "\u2014")   // &mdash;
+      .replace(/ -- /g, " \u2013 ")  // &ndash;
+      .replace(/--/g, "\u2014")    // &mdash;
+      .split(/(?=[ \u2013\u2014-])/g);
     const n = textParts.length;
     let words = new Array<FirstLetterTextInputWord>(n);
     for (let i = 0; i < n; i++) {
-      const w = textParts[i];
+      let w = textParts[i];
+      if (w.length > 0 && i > 0) {
+        let t = w.charAt(0);
+        w = w.substr(1);
+        words[i - 1].word += t;
+      }
       words[i] = {
-        byLetter: !!w.match(/^[A-Z0-9-]+$/),
+        byLetter: !!w.replace(/[ \u2013\u2014-]/g, "").match(/^[A-Z0-9,-]+$/),
         word: w,
       }
     }
@@ -248,8 +258,8 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     const isAndroidWeb = navigator && navigator.userAgent
       ? navigator.userAgent.indexOf("Android") >= 0 : false;
     const readOnly = this.props.readOnly !== undefined && this.props.readOnly;
-    const currentWord = this.state.index < this.words.length
-      ? this.words[this.state.index] : null;
+    /*const currentWord = this.state.index < this.words.length
+      ? this.words[this.state.index] : null;*/
     const style = {
       correct: {
         color: "black"
@@ -277,7 +287,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
           if (w.byLetter) {
             if (i > this.state.index) return null;
             return (
-              <Text key={i}>{(i > 0 ? " " : "")}{
+              <Text key={i}>{
                 w.word.split("").map((c, j) => {
                   let correct = this.state.correct[i]
                     && this.state.correct[i][j];
@@ -305,7 +315,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
                   correct ? this.props.correctStyle
                     : this.props.incorrectStyle,
                 ]}
-                  >{(i > 0 ? " " : "") + w.word}</Text>
+                  >{w.word}</Text>
             )
           }
         })}
@@ -315,10 +325,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
               style={[{
                 margin: 0,
                 padding: 0,
-                position: "relative",
                 width: 5,
-                left: this.state.index === 0
-                  || (currentWord && currentWord.byLetter) ? 0 : 4,
               },
               Platform.OS === "android"
                 && this.state.index === this.words.length
@@ -343,8 +350,6 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         }
         {this.words.map((w, i) => {
           if (i < this.state.index) return null;
-          let noSpace = i <= 0 || (i === this.state.index
-            && this.words[this.state.index].byLetter);
           let fromIndex = (i === this.state.index
             && this.words[this.state.index].byLetter)
             ? this.state.charIndex : 0;
@@ -359,7 +364,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
                 this.props.displayAll ? style.unseen : null,
                 this.props.displayAll ? this.props.unseenStyle : null,
               ]}
-              >{(noSpace ? "" : " ") + w.word.substr(fromIndex)}</Text>
+              >{w.word.substr(fromIndex)}</Text>
           )
         })}
       </View>

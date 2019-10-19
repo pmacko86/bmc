@@ -320,6 +320,179 @@ const BMC_LUKE : BmcBook = {
 };
 
 
+const BMC_ACTS : BmcBook = {
+  title: "Acts",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Ascension---Promise of the Holy Spirit"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Pentecost---Coming of the Holy Spirit"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Lame Man---Healing of the Holy Spirit"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Arrest of Peter and John"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Ananias and Sapphira" // (Lying to the Holy Spirit)
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "7 Deacons"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Stephen's Martyrdom"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Philip (Judea and Samaria Mission)"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Saul's Conversion"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Meeting of Cornelius and Peter"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Mission Report, Christian"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Peter's Escape, James' Martyrdom"
+    },
+    {
+      chapter: 13,
+      part: "a",
+      label: "Antioch Sends out Missionaries"
+    },
+    {
+      chapter: 13,
+      part: "b",
+      label: "The Beginning of the 1st Missionary Journey"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "1st Missionary Journey: "
+        + "Cyprus--Perga--Pisidia Antioch--Iconium--Lystra--Derbe"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "The Jerusalem Council"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "2nd Missionary Journey"
+    },
+    {
+      chapter: 16,
+      part: "a",
+      label: "Troas (Macedonian Vision)"
+    },
+    {
+      chapter: 16,
+      part: "b",
+      label: "Philippi"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Thessalonica--Berea--Athens"
+    },
+    {
+      chapter: 18,
+      part: "a",
+      label: "Corinth"
+    },
+    {
+      chapter: 18,
+      part: "b",
+      label: "The Beginning of the 3rd Missionary Journey"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "3rd Missionary Journey: Ephesus"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Philippi--Macedonia--Achaia--Corinth--Troas (Eutychus)"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Arrest of Paul"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Testimony in the Barracks"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Testimony before the Council"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Testimony before Felix"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Testimony before Festus"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Testimony before Agrippa"
+    },
+    {
+      chapter: 27,
+      part: "a",
+      label: "4th Missionary Journey: Depart from Sidon"
+    },
+    {
+      chapter: 27,
+      part: "b",
+      label: "The Noreaster"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Rome"
+    },
+  ]
+};
+
+
 const BMC_ROMANS : BmcBook = {
   title: "Romans",
   items: [
@@ -543,6 +716,7 @@ export const BMC_DATA : BmcLibrary = {
   contents: [
     BMC_MATTHEW,
     BMC_LUKE,
+    BMC_ACTS,
     BMC_ROMANS,
     BMC_REVELATION,
   ]
