@@ -8,6 +8,10 @@ import * as BMC from './BmcData';
 import STYLES from './Styles';
 
 
+// TODO: Print notes (e.g. for John)
+// TODO: Indent numerical sublists (e.g. for the beatitudes in Matthew)
+
+
 type BmcTextInputProps = {
   allowBackspace?: boolean;
   displayAllItems?: boolean;
@@ -166,17 +170,27 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
         }
 
         let s = "";
+        let withChapter = false;
         if (element.index === 0) {
           s += item.chapter;
+          withChapter = true;
         }
         else {
           const previous = this.props.items[element.index-1];
           if (previous.chapter !== item.chapter) {
             s += item.chapter;
+            withChapter = true;
           }
         }
         if (item.part) s += item.part;
-        s += ".";
+        if (s !== "") {
+          if (!withChapter && s.match(/^[0-9]+$/)) {
+            s += ")";
+          }
+          else {
+            s += ".";
+          }
+        }
         return (
           <View
             key={i}

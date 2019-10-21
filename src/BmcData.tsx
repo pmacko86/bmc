@@ -8,6 +8,7 @@ export type BmcItem = {
 
 export type BmcBook = {
   title: string,
+  notes?: string[],
   items: BmcItem[],
 }
 
@@ -15,6 +16,275 @@ export type BmcLibrary = {
   contents: BmcBook[]
 }
 
+
+const BMC_JOSHUA : BmcBook = {
+  title: "Joshua",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Preparation for conquest"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Two spies/Rahab"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Crossing the Jordan"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Memorial stones"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "CPMC (circumcision, Passover, manna, the Commander)"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Conquest of Jericho"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Achan's sin"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Conquest of Ai"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Gibeonite deception"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Conquest of the south (\"Sun, stand still\")"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Conquest of the north"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Summary of conquest (33 kings)"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Division of the land (east of Jordan)"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Caleb's hill country"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Tribe of Judah"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Tribe of Ephraim"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Tribe of Manasseh"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Tribe of Benjamin"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Other tribes"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Cities of refuge"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Cities of the Levites (48)"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Altar of Witness"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Joshua's farewell sermon"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Shechem Covenant"
+    },
+  ]
+};
+
+const BMC_JUDGES : BmcBook = {
+  title: "Judges",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Failure in conquest"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Spiritual failure"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Othniel, Ehud, Shamgar"
+    },
+    {
+      chapter: 4,
+      part: "a",
+      label: "Deborah at the hill country of Ephraim"
+    },
+    {
+      chapter: 4,
+      part: "b",
+      label: "Victory of Deborah and Barak"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Song of victory"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Calling of Gideon"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Gideon's victory"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Gideon's idol"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Abimelech the evildoer"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Tola, Jair"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Jephthah"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Jephthah's conflict with Ephraim, Ibzan, Elon, Abdon"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Samson's birth"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Samson's marriage"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Samson's victory"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Samson and Delilah"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Micah's idol"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Danites' idol"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "A Levite and his concubine"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "War against Benjaminites"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Preservation of the Benjaminites"
+    },
+  ]
+};
+
+const BMC_RUTH : BmcBook = {
+  title: "Ruth",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Naomi and her family sojourn in Moab, "
+        + "Ruth follows Naomi to Bethlehem"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Ruth meets Boaz"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Kinsman-redeemer"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Boaz marries Ruth (Obed--Jesse--David)"
+    },
+  ]
+};
 
 const BMC_MATTHEW : BmcBook = {
   title: "Matthew",
@@ -27,12 +297,12 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 2,
       part: null,
-      label: "Magi, King Herod"
+      label: "Magi, Herod"
     },
     {
       chapter: 3,
       part: null,
-      label: "John the Baptist, Baptism of Jesus"
+      label: "John the Baptist/Baptism of Jesus"
     },
     {
       chapter: 4,
@@ -42,17 +312,57 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 5,
       part: null,
-      label: "Beatitudes"
+      label: "Beatitudes:"
+    },
+    {
+      chapter: 5,
+      part: "1",
+      label: "Poor in Spirit"
+    },
+    {
+      chapter: 5,
+      part: "2",
+      label: "Mourn"
+    },
+    {
+      chapter: 5,
+      part: "3",
+      label: "Meek"
+    },
+    {
+      chapter: 5,
+      part: "4",
+      label: "Hungry and thirsty for righteousness"
+    },
+    {
+      chapter: 5,
+      part: "5",
+      label: "Merciful"
+    },
+    {
+      chapter: 5,
+      part: "6",
+      label: "Pure in heart"
+    },
+    {
+      chapter: 5,
+      part: "7",
+      label: "Peacemakers"
+    },
+    {
+      chapter: 5,
+      part: "8",
+      label: "Persecuted"
     },
     {
       chapter: 6,
       part: null,
-      label: "APF (Alms, Prayer, Fasting)"
+      label: "APF (alms, prayer, fasting)"
     },
     {
       chapter: 7,
       part: null,
-      label: "ASK (Ask, Seek, Knock)"
+      label: "ASK (ask, seek, knock)"
     },
     {
       chapter: 8,
@@ -67,22 +377,24 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 8,
       part: "c",
-      label: "Legion"
+      label: "Two demoniacs"
     },
     {
       chapter: 9,
       part: null,
-      label: "BPB (Bleeding Woman, Paralytic, Blind Man)"
+      label: "PBB (paralytic, bleeding woman, blind men)"
     },
     {
       chapter: 10,
       part: null,
-      label: "Twelve Disciples"
+      label: "12 disciples: "
+        + "Peter--Andrew, James--John, Philip--Bartholomew, "
+        + "Thomas--Matthew, James--Thaddaeus, Simon--Judas"
     },
     {
       chapter: 11,
       part: null,
-      label: "Kingdom Invasion"
+      label: "\"Come to me\""
     },
     {
       chapter: 12,
@@ -92,27 +404,42 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 13,
       part: null,
-      label: "PK (Parables of Kingdom)"
+      label: "PK (parables of Kingdom)"
     },
     {
       chapter: 14,
       part: "a",
-      label: "5-2 (5 Loaves, 2 Fish)"
+      label: "Death of John the Baptist"
     },
     {
       chapter: 14,
       part: "b",
-      label: "WOW (Walking on Water)"
+      label: "Five loaves and two fish"
+    },
+    {
+      chapter: 14,
+      part: "c",
+      label: "Walking on water"
     },
     {
       chapter: 15,
-      part: null,
-      label: "7-2"
+      part: "a",
+      label: "Hypocrisy of elders' tradition"
+    },
+    {
+      chapter: 15,
+      part: "b",
+      label: "Canaanite woman (= Syrophoenician woman)"
+    },
+    {
+      chapter: 15,
+      part: "c",
+      label: "Seven loaves and a few fish"
     },
     {
       chapter: 16,
       part: null,
-      label: "Peter's Confession"
+      label: "Peter's confession"
     },
     {
       chapter: 17,
@@ -122,7 +449,7 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 18,
       part: null,
-      label: "Little Children"
+      label: "Little children"
     },
     {
       chapter: 19,
@@ -131,38 +458,44 @@ const BMC_MATTHEW : BmcBook = {
     },
     {
       chapter: 20,
-      part: null,
-      label: "Eleventh Hour Workers"
+      part: "a",
+      label: "11th-hour worker"
+    },
+    {
+      chapter: 20,
+      part: "b",
+      label: "Two blind men"
     },
     {
       chapter: 21,
       part: null,
-      label: "Entering Jerusalem"
+      label: "Triumphal Entry of Jesus, cleansing the Temple"
     },
     {
       chapter: 22,
       part: null,
-      label: "Greatest Commandment"
+      label: "Great Commandment"
     },
     {
       chapter: 23,
       part: null,
-      label: "Seven Woes"
+      label: "7 woes"
     },
     {
       chapter: 24,
       part: null,
-      label: "ETS (End Times Signs)"
+      label: "SET (signs of the end times)"
     },
     {
       chapter: 25,
       part: null,
-      label: "TV (Talents, Virgins)"
+      label: "VT (virgin, talent parables)"
     },
     {
       chapter: 26,
       part: null,
-      label: "Arrest, Peter's Denial"
+      label: "Alabaster jar, Lord's Supper, Gethsemane, arrest, "
+        + "Peter's denial and repentance"
     },
     {
       chapter: 27,
@@ -172,11 +505,138 @@ const BMC_MATTHEW : BmcBook = {
     {
       chapter: 28,
       part: null,
-      label: "Resurrection, Commission"
+      label: "Resurrection, Great Commission"
     },
   ]
 };
 
+const BMC_MARK : BmcBook = {
+  title: "Mark",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Beginning of the gospel of Jesus"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Paralytic, call of Levi (= Matthew), fasting controversy"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Jesus calls the Twelve"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Parables of the Kingdom, storm"
+    },
+    {
+      chapter: 5,
+      part: "a",
+      label: "Demoniac"
+    },
+    {
+      chapter: 5,
+      part: "b",
+      label: "Bleeding woman, Jairus' daughter"
+    },
+    {
+      chapter: 6,
+      part: "a",
+      label: "Sending out the Twelve"
+    },
+    {
+      chapter: 6,
+      part: "b",
+      label: "Death of John the Baptist"
+    },
+    {
+      chapter: 6,
+      part: "c",
+      label: "Five loaves and two fish"
+    },
+    {
+      chapter: 6,
+      part: "d",
+      label: "Walking on water"
+    },
+    {
+      chapter: 7,
+      part: "a",
+      label: "Hypocrisy of elders' traditions"
+    },
+    {
+      chapter: 7,
+      part: "b",
+      label: "Syrophoenician woman (= Canaanite woman)"
+    },
+    {
+      chapter: 8,
+      part: "a",
+      label: "Seven loaves and a few fish"
+    },
+    {
+      chapter: 8,
+      part: "b",
+      label: "Second touch"
+    },
+    {
+      chapter: 8,
+      part: "c",
+      label: "Peter's confession"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Transfiguration"
+    },
+    {
+      chapter: 10,
+      part: "a",
+      label: "Rich young ruler, servanthood (verse 45)"
+    },
+    {
+      chapter: 10,
+      part: "b",
+      label: "Bartimaeus"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Triumphal Entry of Jesus, cleansing the Temple"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Wicked tenants, resurrection controversy, "
+        + "Great Commandment, widow's two coins"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "SET (signs of the end times)"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Alabaster jar, Lord's Supper, Gethsemane, arrest, "
+        + "Peter's denial and repentance"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Death on the Cross"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Resurrection, Great Commission, ascension"
+    },
+  ]
+};
 
 const BMC_LUKE : BmcBook = {
   title: "Luke",
@@ -184,42 +644,52 @@ const BMC_LUKE : BmcBook = {
     {
       chapter: 1,
       part: null,
-      label: "John the Baptist"
+      label: "John the Baptist, Mary and Elizabeth"
     },
     {
       chapter: 2,
       part: null,
-      label: "Birth of Jesus, SAS (Shepherds, Anna, Simeon)"
+      label: "Birth of Jesus: SAS (shepherds, Anna, Simeon)"
     },
     {
       chapter: 3,
       part: null,
-      label: "Baptism, Genealogy of Jesus"
+      label: "BBaptism and genealogy of Jesus"
     },
     {
       chapter: 4,
       part: null,
-      label: "Temptations"
+      label: "Temptations of Jesus"
     },
     {
       chapter: 5,
       part: null,
-      label: "Jesus Calls Peter"
+      label: "Jesus calls Peter"
     },
     {
       chapter: 6,
       part: null,
-      label: "Sermon on the Plain, LA (Lord of Sabbath, 12 Apostles)"
+      label: "Jesus calls the Twelve, Sermon on the plain"
     },
     {
       chapter: 7,
       part: null,
-      label: "CAN (Centurion, Alabaster Jar Woman, Nain)"
+      label: "CNA (centurion, Nain, alabaster jar)"
     },
     {
       chapter: 8,
-      part: null,
-      label: "Storm, Legion"
+      part: "a",
+      label: "Storm"
+    },
+    {
+      chapter: 8,
+      part: "b",
+      label: "Demoniac"
+    },
+    {
+      chapter: 8,
+      part: "c",
+      label: "Jairus' daughter"
     },
     {
       chapter: 9,
@@ -229,12 +699,12 @@ const BMC_LUKE : BmcBook = {
     {
       chapter: 9,
       part: "b",
-      label: "5-2"
+      label: "Five loaves and two fish"
     },
     {
       chapter: 9,
       part: "c",
-      label: "Peter's Confession"
+      label: "Peter's confession"
     },
     {
       chapter: 9,
@@ -244,67 +714,73 @@ const BMC_LUKE : BmcBook = {
     {
       chapter: 10,
       part: null,
-      label: "Sending out the 72, Good Samaritan, Martha vs. Mary"
+      label: "Sending out the seventy-two, Good Samaritan"
     },
     {
       chapter: 11,
       part: null,
-      label: "LAB6 (Lord's Prayer, ASK, Bealzebub, 6 woes)"
+      label: "LAB6 (Lord's Prayer, ask-seek-knock, Beelzebul, 6 woes)"
     },
     {
       chapter: 12,
       part: null,
-      label: "Rich Fool"
+      label: "Rich fool"
     },
     {
       chapter: 13,
       part: null,
-      label: "Kingdom of God Parables"
+      label: "Repent! Enter through the narrow door!"
     },
     {
       chapter: 14,
       part: null,
-      label: "Discipleship (3 P's)"
+      label: "Cost of discipleship (3 P's)"
     },
     {
       chapter: 15,
       part: null,
-      label: "Lost SCP (Sheep, Coin, Prodigal)"
+      label: "Return of the prodigal son" //Lost SCP (Sheep, Coin, Prodigal)"
     },
     {
       chapter: 16,
       part: null,
-      label: "Unrighteous Manager, Poor Lazarus"
+      label: "Shrewd manager, poor Lazarus"
     },
     {
       chapter: 17,
       part: null,
-      label: "Unworthy Servant"
+      label: "Unworthy servant"
     },
     {
       chapter: 18,
       part: null,
-      label: "How to pray (Persistent Widow, the Pharisee and the Tax Collector)"
+      label: "How to pray (persistent widow, tax collector)"
     },
     {
       chapter: 19,
-      part: null,
-      label: "Zacchaeus, Entering Jerusalem"
+      part: "a",
+      label: "Zacchaeus"
+    },
+    {
+      chapter: 19,
+      part: "b",
+      label: "Triumphal Entry of Jesus, cleansing the Temple"
     },
     {
       chapter: 20,
       part: null,
-      label: "Wicked Tenants, Resurrected World"
+      label: "Wicked tenants, resurrection controversy"
     },
     {
       chapter: 21,
       part: null,
-      label: "ETS (End Times Signs)"
+      label: "Widow's two coins, SET (signs of the end times)"
     },
     {
       chapter: 22,
       part: null,
-      label: "Arrest (Lord's Supper, Gethsemane, Peter's Denial)"
+      label: "Lord's Supper, Gethsemane, arrest, "
+        + "Peter's denial and repentance"
     },
     {
       chapter: 23,
@@ -314,11 +790,129 @@ const BMC_LUKE : BmcBook = {
     {
       chapter: 24,
       part: null,
-      label: "Resurrection (Emmaus)"
+      label: "Resurrection, road to Emmaus, ascension"
     },
   ]
 };
 
+const BMC_JOHN : BmcBook = {
+  title: "John",
+  notes: [
+    "(* after the \"I AM\" expressions)",
+  ],
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Word, Lamb of God"
+    },
+    {
+      chapter: 2,
+      part: "a",
+      label: "Wedding at Cana"
+    },
+    {
+      chapter: 2,
+      part: "b",
+      label: "Cleansing the Temple"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Nicodemus"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Samaritan woman"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Invalid at the Bethesda Pool"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Five loaves and two fish, The Bread of life*"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Feast of Booths/Rivers of Living Water (Holy Spirit)"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Adulterous woman, The Light of the world*"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Healing a blind man"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "The Door of the sheep*, The Good Shepherd*"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Raising Lazarus, The Resurrection and the Life*"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Grain of wheat"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Lord's Supper, washing feet, New Commandment"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "The Way, the Truth, and the Life*"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "The Vine*"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Holy Spirit the Helper"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "High priestly prayer of Jesus"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Arrest, Peter's denial"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Death on the Cross"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Resurrection"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Feed my sheep"
+    },
+  ]
+};
 
 const BMC_ACTS : BmcBook = {
   title: "Acts",
@@ -326,47 +920,49 @@ const BMC_ACTS : BmcBook = {
     {
       chapter: 1,
       part: null,
-      label: "Ascension---Promise of the Holy Spirit"
+      label: "Promise of Holy Spirit, Great Commission, ascension, "
+        + "choosing of Matthias"
     },
     {
       chapter: 2,
       part: null,
-      label: "Pentecost---Coming of the Holy Spirit"
+      label: "Pentecost (coming of Holy Spirit), "
+        + "birth of the Jerusalem church"
     },
     {
       chapter: 3,
       part: null,
-      label: "Lame Man---Healing of the Holy Spirit"
+      label: "Healing of the lame man"
     },
     {
       chapter: 4,
       part: null,
-      label: "Arrest of Peter and John"
+      label: "Peter and John before the Sanhedrin"
     },
     {
       chapter: 5,
       part: null,
-      label: "Ananias and Sapphira" // (Lying to the Holy Spirit)
+      label: "Death of Ananias and Sapphira"
     },
     {
       chapter: 6,
       part: null,
-      label: "7 Deacons"
+      label: "7 deacons"
     },
     {
       chapter: 7,
       part: null,
-      label: "Stephen's Martyrdom"
+      label: "Stephen's martyrdom"
     },
     {
       chapter: 8,
       part: null,
-      label: "Philip (Judea and Samaria Mission)"
+      label: "Philip the deacon/Judea and Samaria mission"
     },
     {
       chapter: 9,
       part: null,
-      label: "Saul's Conversion"
+      label: "Saul's conversion on the road to Damascus"
     },
     {
       chapter: 10,
@@ -375,123 +971,217 @@ const BMC_ACTS : BmcBook = {
     },
     {
       chapter: 11,
-      part: null,
-      label: "Mission Report, Christian"
+      part: "a",
+      label: "Peter's mission report"
+    },
+    {
+      chapter: 11,
+      part: "b",
+      label: "\"Christians\""
     },
     {
       chapter: 12,
       part: null,
-      label: "Peter's Escape, James' Martyrdom"
+      label: "James' martyrdom, Peter's escape, Herod Agrippa's death"
     },
     {
       chapter: 13,
       part: "a",
-      label: "Antioch Sends out Missionaries"
+      label: "Commissioning of missionaries (Saul and Barnabas)"
     },
     {
       chapter: 13,
       part: "b",
-      label: "The Beginning of the 1st Missionary Journey"
+      label: "First missionary journey begins: "
+        + "Antioch--Cyprus (Saul becomes Paul)--Perga--Pisidia Antioch"
     },
     {
       chapter: 14,
       part: null,
-      label: "1st Missionary Journey: "
-        + "Cyprus--Perga--Pisidia Antioch--Iconium--Lystra--Derbe"
+      label: "First missionary journey continues: "
+        + "Iconium--Lystra--Derbe--Lystra--Iconium--"
+        + "Pisidia Antioch--Perga--Attalia--Antioch"
     },
     {
       chapter: 15,
-      part: null,
-      label: "The Jerusalem Council"
+      part: "a",
+      label: "Jerusalem Council"
+    },
+    {
+      chapter: 15,
+      part: "b",
+      label: "Second missionary journey begins "
+        + "(Parting of Paul and Barnabas): Antioch--Syria--Cilicia"
     },
     {
       chapter: 16,
       part: null,
-      label: "2nd Missionary Journey"
+      label: "Second missionary journey continues: "
+        + "Derbe--Lystra--Troas--Neapolis--Philippi"
     },
     {
       chapter: 16,
       part: "a",
-      label: "Troas (Macedonian Vision)"
+      label: "Lystra: Timothy joins Paul"
     },
     {
       chapter: 16,
       part: "b",
-      label: "Philippi"
+      label: "Troas: Macedonian Call, Luke joins Paul"
+    },
+    {
+      chapter: 16,
+      part: "c",
+      label: "Philippi: Lydia, jailer"
     },
     {
       chapter: 17,
       part: null,
-      label: "Thessalonica--Berea--Athens"
+      label: "Second missionary journey continues:"
+    },
+    {
+      chapter: 17,
+      part: "a",
+      label: "Thessalonica"
+    },
+    {
+      chapter: 17,
+      part: "b",
+      label: "Berea"
+    },
+    {
+      chapter: 17,
+      part: "c",
+      label: "Athens"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Second missionary journey continues: "
+        + "Corinth--Cenchreae--Ephesus--Caesarea--Jerusalem--Antioch"
     },
     {
       chapter: 18,
       part: "a",
-      label: "Corinth"
+      label: "Corinth: Aquila and Priscilla"
     },
     {
       chapter: 18,
       part: "b",
-      label: "The Beginning of the 3rd Missionary Journey"
+      label: "Cenchreae: Paul's vow"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Third missionary journey begins, "
+        + "Priscilla and Aquila teach Apollos in Ephesus"
     },
     {
       chapter: 19,
       part: null,
-      label: "3rd Missionary Journey: Ephesus"
+      label: "Third missionary journey continues"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Ephesus: Hall of Tyrannus, great revival, riot"
     },
     {
       chapter: 20,
       part: null,
-      label: "Philippi--Macedonia--Achaia--Corinth--Troas (Eutychus)"
+      label: "Third missionary journey continues: "
+        + "Macedonia--Greece (Corinth)--Philippi--Troas--Miletus"
+    },
+    {
+      chapter: 20,
+      part: "a",
+      label: "Troas: Eutychus"
+    },
+    {
+      chapter: 20,
+      part: "b",
+      label: "Miletus: Farewell with Ephesian elders"
     },
     {
       chapter: 21,
       part: null,
-      label: "Arrest of Paul"
+      label: "Third missionary journey continues: "
+        + "Tyre--Caesarea--Jerusalem"
+    },
+    {
+      chapter: 21,
+      part: "a",
+      label: "Tyre: Warning 1 by disciples"
+    },
+    {
+      chapter: 21,
+      part: "b",
+      label: "Caesarea: Warning 2 by Agabus"
+    },
+    {
+      chapter: 21,
+      part: "c",
+      label: "Jerusalem: Paul's arrest"
     },
     {
       chapter: 22,
       part: null,
-      label: "Testimony in the Barracks"
+      label: "Defense in the Temple"
     },
     {
       chapter: 23,
       part: null,
-      label: "Testimony before the Council"
+      label: "Defense before the Sanhedrin, "
+        + "Paul strengthened by Jesus in a vision"
     },
     {
       chapter: 24,
       part: null,
-      label: "Testimony before Felix"
+      label: "Defense before Felix"
     },
     {
       chapter: 25,
       part: null,
-      label: "Testimony before Festus"
+      label: "Defense before Festus/appeal to Caesar"
     },
     {
       chapter: 26,
       part: null,
-      label: "Testimony before Agrippa"
+      label: "Defense before Herod Agrippa II"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Fourth missionary journey begins: "
+        + "Caesarea--Sidon--Fair Havens"
     },
     {
       chapter: 27,
       part: "a",
-      label: "4th Missionary Journey: Depart from Sidon"
+      label: "Caesarea: Fourth missionary journey begins"
     },
     {
       chapter: 27,
       part: "b",
-      label: "The Noreaster"
+      label: "Northeaster: Shipwreck"
     },
     {
       chapter: 28,
       part: null,
-      label: "Rome"
+      label: "Fourth missionary journey continues: Malta--Rome"
+    },
+    {
+      chapter: 28,
+      part: "a",
+      label: "Malta: Snake incident"
+    },
+    {
+      chapter: 28,
+      part: "b",
+      label: "Rome: Arrival, unhindered preaching of the gospel"
     },
   ]
 };
-
 
 const BMC_ROMANS : BmcBook = {
   title: "Romans",
@@ -500,28 +1190,28 @@ const BMC_ROMANS : BmcBook = {
       chapter: 1,
       part: null,
       heading: "Doctrine of Sin",
-      label: "Sin of Gentiles"
+      label: "Gentiles' Sin"
     },
     {
       chapter: 2,
       part: null,
-      label: "Sin of Jews"
+      label: "Jews' Sin"
     },
     {
       chapter: 3,
       part: null,
-      label: "Sin of all Mankind"
+      label: "Sin of all mankind"
     },
     {
       chapter: 4,
       part: null,
       heading: "Doctrine of Salvation",
-      label: "Justification by Faith 1"
+      label: "Justification by faith 1"
     },
     {
       chapter: 5,
       part: null,
-      label: "Justification by Faith 2"
+      label: "Justification by faith 2"
     },
     {
       chapter: 6,
@@ -542,34 +1232,34 @@ const BMC_ROMANS : BmcBook = {
     {
       chapter: 9,
       part: null,
-      heading: "Doctrine of Blessings for Israel",
-      label: "Past"
+      heading: "Blessings of Israel",
+      label: "Israel's past"
     },
     {
       chapter: 10,
       part: null,
-      label: "Present"
+      label: "Israel's present"
     },
     {
       chapter: 11,
       part: null,
-      label: "Future"
+      label: "Israel's future"
     },
     {
       chapter: 12,
       part: null,
-      heading: "Practice",
-      label: "Believers' Life in Church"
+      heading: "Christian Practice",
+      label: "Believers' life in the Church"
     },
     {
       chapter: 13,
       part: null,
-      label: "Believers' Life in Society"
+      label: "Believers' life in Society"
     },
     {
       chapter: 14,
       part: null,
-      label: "Believers' Life with One Another"
+      label: "Believers' life with one another"
     },
     {
       chapter: 15,
@@ -611,82 +1301,89 @@ const BMC_REVELATION : BmcBook = {
     {
       chapter: 5,
       part: null,
-      label: "The Lamb"
+      label: "Worthy is the Lamb"
     },
     {
       chapter: 6,
       part: null,
-      label: "Judgment of 7 Seals"
+      label: "Judgment of 7 seals (6 seals are opened)"
     },
     {
       chapter: 7,
       part: null,
-      label: "144,000 of Israel Saved, Countless Multitudes of Gentiles"
+      label: "The 144,000 of Israel saved, "
+        + "countless multitude of Gentiles"
     },
     {
       chapter: 8,
       part: null,
-      label: "Judgment of 7 Trumpets 1"
+      label: "7th seal is opened, "
+        + "Judgment of 7 trumpets begins (1-4 trumpets)"
     },
     {
       chapter: 9,
       part: null,
-      label: "Judgment of 7 Trumpets 2"
+      label: "Judgment of 7 trumpets continues (5, 6 trumpets)"
     },
     {
       chapter: 10,
       part: null,
-      label: "The Little Scroll"
+      label: "The little scroll"
     },
     {
       chapter: 11,
       part: null,
-      label: "The Last Trumpet"
+      label: "The 7th trumpet"
     },
     {
       chapter: 12,
       part: null,
-      label: "The Woman and the Dragon"
+      label: "The woman and the dragon"
     },
     {
       chapter: 13,
       part: null,
-      label: "Two Beasts"
+      label: "Two beasts"
     },
     {
       chapter: 14,
       part: null,
-      label: "The 144,000 of the Sealed"
+      label: "The 144,000 of the sealed"
     },
     {
       chapter: 15,
       part: null,
-      label: "Song of Salvation"
+      label: "Song of Moses and the Lamb"
     },
     {
       chapter: 16,
       part: null,
-      label: "Judgment of 7 Bowls"
+      label: "Judgment of 7 bowls"
     },
     {
       chapter: 17,
       part: null,
-      label: "Judgment for the Great Prostitute"
+      label: "Judgment for the great Prostitute"
     },
     {
       chapter: 18,
       part: null,
-      label: "Judgment for the Great Babylon"
+      label: "Judgment for the great Babylon"
     },
     {
       chapter: 19,
       part: "a",
-      label: "Marriage Supper of the Lamb"
+      label: "Marriage supper of the Lamb"
     },
     {
       chapter: 19,
       part: "b",
-      label: "Lake-of-Fire Judgment for Beast and False Prophet"
+      label: "The Rider on a white horse (King of kings, Lord of lords)"
+    },
+    {
+      chapter: 19,
+      part: "c",
+      label: "Lake-of-fire judgment for the Beast and False Prophet"
     },
     {
       chapter: 20,
@@ -696,17 +1393,17 @@ const BMC_REVELATION : BmcBook = {
     {
       chapter: 20,
       part: "b",
-      label: "Lake-of-Fire Judgment for Satan and Unbelievers"
+      label: "Lake-of-fire judgment for Satan and unbelievers"
     },
     {
       chapter: 21,
       part: null,
-      label: "New Heaven, New Earth, New Jerusalem"
+      label: "New Heaven and a New Earth, New Jerusalem"
     },
     {
       chapter: 22,
       part: null,
-      label: "Reigning with Jesus as Kings"
+      label: "Reigning with Jesus forever, \"Come, Lord Jesus!\""
     },
   ]
 };
@@ -714,8 +1411,13 @@ const BMC_REVELATION : BmcBook = {
 
 export const BMC_DATA : BmcLibrary = {
   contents: [
+    BMC_JOSHUA,
+    BMC_JUDGES,
+    BMC_RUTH,
     BMC_MATTHEW,
+    BMC_MARK,
     BMC_LUKE,
+    BMC_JOHN,
     BMC_ACTS,
     BMC_ROMANS,
     BMC_REVELATION,

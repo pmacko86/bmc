@@ -73,7 +73,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       .replace(/---/g, "\u2014")   // &mdash;
       .replace(/ -- /g, " \u2013 ")  // &ndash;
       .replace(/--/g, "\u2014")    // &mdash;
-      .split(/(?=[ \u2013\u2014-])/g);
+      .split(/(?=[ /\u2013\u2014-])/g);
     const n = textParts.length;
     let words = new Array<FirstLetterTextInputWord>(n);
     for (let i = 0; i < n; i++) {
@@ -84,7 +84,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         words[i - 1].word += t;
       }
       words[i] = {
-        byLetter: !!w.replace(/[ \u2013\u2014-]/g, "").match(/^[A-Z0-9,-]+$/),
+        byLetter: !!w.replace(/[ /\u2013\u2014-]/g, "").match(/^[A-Z0-9,-]+$/),
         word: w,
       }
     }
