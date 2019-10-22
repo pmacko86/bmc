@@ -1,9 +1,24 @@
 import { StyleSheet } from 'react-native';
 
 const STYLES = StyleSheet.create({
-  header: {
-    backgroundColor: "#000",
+  headerBackView: {
+    backgroundColor: "#222",
+    borderColor: "#aaa",
+    borderWidth: 1,
+    margin: 4,
+  },
+  headerBackText: {
+    color: "#aaa",
+    padding: 8,
+  },
+  headerTitle: {
     color: "#fff",
+    paddingBottom: 13,
+    paddingLeft: 12,
+    paddingTop: 13,
+  },
+  headerView: {
+    backgroundColor: "#000",
     padding: 4,
   },
   instructions: {

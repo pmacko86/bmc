@@ -47,20 +47,18 @@ extends React.Component<TopBarProps, TopBarState> {
   render() {
     return (
       <View
-        style={[STYLES.header, {
+        style={[STYLES.headerView, {
           flexDirection: "row",
         }]}
         >
         {this.props.hideBack ? null :
-          <TouchableHighlight
-            onPress={this.handleBack}
-            >
-            <Text
-              style={STYLES.header}
-              >&lt;</Text>
+          <TouchableHighlight onPress={this.handleBack}>
+            <View style={STYLES.headerBackView}>
+              <Text style={STYLES.headerBackText}>&lt; Back</Text>
+            </View>
           </TouchableHighlight>}
         <Text
-          style={STYLES.header}
+          style={STYLES.headerTitle}
           >{this.props.text}</Text>
       </View>
     );
