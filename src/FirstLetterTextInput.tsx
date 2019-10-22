@@ -46,6 +46,7 @@ type FirstLetterTextInputState = {
 type FirstLetterTextInputWord = {
   word: string;
   byLetter: boolean;
+  skip: boolean;
 }
 
 
@@ -70,9 +71,9 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     this.editlockTimeoutSafetyMS = 100;
 
     const textParts = props.text
-      .replace(/---/g, "\u2014")   // &mdash;
+      .replace(/---/g, "\u2014")     // &mdash;
       .replace(/ -- /g, " \u2013 ")  // &ndash;
-      .replace(/--/g, "\u2014")    // &mdash;
+      .replace(/--/g, "\u2014")      // &mdash;
       .split(/(?=[ /\u2013\u2014-])/g);
     const n = textParts.length;
     let words = new Array<FirstLetterTextInputWord>(n);
@@ -84,7 +85,8 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         words[i - 1].word += t;
       }
       words[i] = {
-        byLetter: !!w.replace(/[ /\u2013\u2014-]/g, "").match(/^[A-Z0-9,-]+$/),
+        byLetter: !!w.match(/^[^a-z]+$/),
+        skip: !!w.match(/^[^A-Za-z0-9]*$/),
         word: w,
       }
     }
@@ -103,26 +105,53 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
   }
 
   backspace() {
-    if (this.state.charIndex > 0) {
-      this.setState({
-        charIndex: this.state.charIndex - 1,
-      });
-    }
-    else if (this.state.index > 0) {
-      let newCharIndex = 0;
-      let prevWord = this.words[this.state.index - 1];
-      if (prevWord.byLetter) newCharIndex = prevWord.word.length - 1;
-      this.setState({
-        index: this.state.index - 1,
-        charIndex: newCharIndex,
-      });
-    }
-    else {
-      // TODO Call this asynchronously?
-      if (this.props.onTopBackspace !== undefined) {
-        this.props.onTopBackspace();
+
+    let charIndex = this.state.charIndex;
+    let index = this.state.index;
+
+    while (true) {
+
+      if (charIndex > 0) {
+        charIndex--;
+      }
+      else if (index > 0) {
+        index--;
+        let prevWord = this.words[index];
+        if (prevWord.byLetter && prevWord.word.length > 0) {
+          charIndex = prevWord.word.length - 1;
+        }
+        else {
+          charIndex = 0;
+        }
+      }
+      else {
+        this.setState({
+          index: index,
+          charIndex: charIndex,
+        });
+
+        if (this.props.onTopBackspace !== undefined) {
+          // TODO Call this asynchronously?
+          this.props.onTopBackspace();
+        }
+
+        break;
+      }
+
+      let w = this.words[index];
+      if (w.skip) continue;
+      if (w.byLetter) {
+        if (w.word.charAt(charIndex).match(/[A-Za-z0-9]/)) break;
+      }
+      else {
+        break;
       }
     }
+
+    this.setState({
+      index: index,
+      charIndex: charIndex,
+    });
   }
 
   focus() {
@@ -225,10 +254,12 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         }
       }
 
+      let nextWord = false;
       if (word.byLetter) {
         if (nextNextWordCharacter === "") {
           index++;
           charIndex = 0;
+          nextWord = true;
         }
         else {
           charIndex++;
@@ -237,6 +268,24 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       else {
         index++;
         charIndex = 0;
+        nextWord = true;
+      }
+
+
+      // Ensure that the next word is actually a word, not just
+      // something that will be skipped entirely.
+
+      if (nextWord) {
+        while (index < this.words.length && this.words[index].skip) {
+          if (!correct[index]) {
+            correct[index]
+              = new Array<boolean>(this.words[index].word.length);
+          }
+          for (let i = 0; i < correct[index].length; i++) {
+            correct[index][i] = true;
+          }
+          index++;
+        }
       }
 
       this.setState({
