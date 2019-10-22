@@ -654,7 +654,7 @@ const BMC_LUKE : BmcBook = {
     {
       chapter: 3,
       part: null,
-      label: "BBaptism and genealogy of Jesus"
+      label: "Baptism and genealogy of Jesus"
     },
     {
       chapter: 4,

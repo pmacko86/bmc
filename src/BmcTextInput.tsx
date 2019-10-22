@@ -16,6 +16,7 @@ type BmcTextInputProps = {
   allowBackspace?: boolean;
   displayAllItems?: boolean;
   displayAllTextInItem?: boolean;
+  everythingEditable?: boolean;
   items: BMC.BmcItem[];
 }
 
@@ -86,12 +87,14 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
         if (r != null && this.elements[i]) this.elements[i].input = r;
       }}
       allowBackspace={this.props.allowBackspace}
+      autoFocus={this.state.index === i}
       correctStyle={!isHeading ? undefined : headingStyle }
       incorrectStyle={!isHeading ? undefined : headingStyle }
       unseenStyle={!isHeading ? undefined : headingStyle }
       displayAll={this.props.displayAllTextInItem}
-      readOnly={this.state.index !== i
-        && this.state.previousIndex !== i}
+      readOnly={!(this.props.everythingEditable
+        || this.state.index === i
+        || this.state.previousIndex === i)}
       style={STYLES.test}
       text={label}
       onCompletion={() => {
@@ -125,7 +128,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
             setTimeout(() => {
               let input = this.elements[i - 1].input;
               if (input) {
-                input.backspace();
+                input.backspace(true /* suppressTopBackspace */);
                 input.focus();
               }
               // XXX Doing this will still cause some flicker!

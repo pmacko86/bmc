@@ -23,6 +23,7 @@ import {
 
 type FirstLetterTextInputProps = {
   allowBackspace?: boolean;
+  autoFocus?: boolean;
   displayAll?: boolean;
   readOnly?: boolean;
   style?: {};
@@ -104,7 +105,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     this.handleKeyPress = this.handleKeyPress.bind(this);
   }
 
-  backspace() {
+  backspace(suppressTopBackspace: boolean = false) {
 
     let charIndex = this.state.charIndex;
     let index = this.state.index;
@@ -130,12 +131,13 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
           charIndex: charIndex,
         });
 
-        if (this.props.onTopBackspace !== undefined) {
+        if (this.props.onTopBackspace !== undefined
+          && !suppressTopBackspace) {
           // TODO Call this asynchronously?
           this.props.onTopBackspace();
         }
 
-        break;
+        return;
       }
 
       let w = this.words[index];
@@ -385,7 +387,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
               onChange={this.handleChange}
               autoCompleteType={"off"}
               autoCorrect={false}
-              autoFocus={true}
+              autoFocus={this.props.autoFocus}
               editable={true}
               selectTextOnFocus={false}
               caretHidden={false}

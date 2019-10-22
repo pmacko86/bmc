@@ -58,6 +58,7 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
               allowBackspace={true}
               displayAllItems={true}
               displayAllTextInItem={true}
+              everythingEditable={true}
               items={book.items}
               />
           </ScrollView>
