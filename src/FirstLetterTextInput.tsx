@@ -222,14 +222,12 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
 
       let nextWordCharacter = "";
       let nextNextWordCharacter = "";
-      let nextWordCharacterIndex = 0;
       let nextNextWordCharacterIndex = wordLowerCase.length;
       for (let i = charIndex; i < wordLowerCase.length; i++) {
         const c = wordLowerCase.charAt(i);
         if (c.match(/[a-z0-9]/i)) {
           if (nextWordCharacter === "") {
             nextWordCharacter = c;
-            nextWordCharacterIndex = i;
           }
           else {
             nextNextWordCharacter = c;
@@ -245,8 +243,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         correct[index] = new Array<boolean>(wordLowerCase.length);
       }
       if (word.byLetter) {
-        for (let i = nextWordCharacterIndex;
-          i < nextNextWordCharacterIndex; i++) {
+        for (let i = charIndex; i < nextNextWordCharacterIndex; i++) {
           correct[index][i] = matches;
         }
       }
@@ -264,7 +261,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
           nextWord = true;
         }
         else {
-          charIndex++;
+          charIndex = nextNextWordCharacterIndex;
         }
       }
       else {
