@@ -59,6 +59,7 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
               displayAllItems={true}
               displayAllTextInItem={true}
               everythingEditable={true}
+              optionalWords={["a", "an", "the"]}
               items={book.items}
               />
           </ScrollView>

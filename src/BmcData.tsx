@@ -249,7 +249,7 @@ const BMC_JUDGES : BmcBook = {
     {
       chapter: 20,
       part: null,
-      label: "War against Benjaminites"
+      label: "War against [the] Benjaminites"
     },
     {
       chapter: 21,

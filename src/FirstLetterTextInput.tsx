@@ -30,6 +30,7 @@ type FirstLetterTextInputProps = {
   correctStyle?: {};
   incorrectStyle?: {};
   unseenStyle?: {};
+  optionalWords?: string[];
   text: string;
   onCompletion?: () => void;
   onTopBackspace?: () => void;
@@ -40,6 +41,7 @@ type FirstLetterTextInputState = {
   index: number;
   charIndex: number;
   correct: boolean[][];
+  triggered: boolean[];
   keyPressCount: number;
 }
 
@@ -48,6 +50,16 @@ type FirstLetterTextInputWord = {
   word: string;
   byLetter: boolean;
   skip: boolean;
+  optional: boolean;
+  showOnlyIfTriggered: boolean;
+}
+
+
+type FirstLetterTextInputDoNextWordResult = {
+  index: number;
+  charIndex: number;
+  wasCorrect: boolean;
+  reachedEnd: boolean;
 }
 
 
@@ -85,9 +97,22 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         w = w.substr(1);
         words[i - 1].word += t;
       }
+
+      let byLetter = !!w.match(/^[^a-z]+$/)
+        && !w.match(/^[^A-Z0-9]*[A-Z0-9][^A-Z0-9]*$/);
+      let showOnlyIfTriggered = !byLetter
+        && !!w.match(/^\[.+\][,;:]?[ ]?$/);
+      let optional: boolean =
+        (!byLetter && !!this.props.optionalWords
+          && this.props.optionalWords.find(
+            s => w.toLowerCase() === s.toLowerCase()) !== undefined)
+        || showOnlyIfTriggered;   // [optional] word
+
       words[i] = {
-        byLetter: !!w.match(/^[^a-z]+$/),
+        byLetter: byLetter,
         skip: !!w.match(/^[^A-Za-z0-9]*$/),
+        optional: optional,
+        showOnlyIfTriggered: showOnlyIfTriggered,
         word: w,
       }
     }
@@ -97,6 +122,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       index: 0,
       charIndex: 0,
       correct: new Array<boolean[]>(n),
+      triggered: new Array<boolean>(n),
       keyPressCount: 0,
     }
 
@@ -142,6 +168,9 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
 
       let w = this.words[index];
       if (w.skip) continue;
+      if (w.showOnlyIfTriggered) {
+        if (!this.state.triggered[index]) continue;
+      }
       if (w.byLetter) {
         if (w.word.charAt(charIndex).match(/[A-Za-z0-9]/)) break;
       }
@@ -191,6 +220,140 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       this.editlockTimeoutMS);
   }
 
+  findNextCharacter(s: string, start: number) : [string, number] {
+    for (let i = start; i < s.length; i++) {
+      const c = s.charAt(i);
+      if (c.match(/[a-z0-9]/i)) {
+        return [c, i];
+      }
+    }
+    return ["", s.length];
+  }
+
+  updateCorrectState(correctState: boolean[][], index: number,
+    value: boolean, from: number = 0, to: number = -1) {
+    const word = this.words[index];
+    if (!correctState[index]) {
+      correctState[index] = new Array<boolean>(word.word.length);
+    }
+    if (word.byLetter) {
+      if (to <= 0 || to > correctState[index].length) {
+        to = correctState[index].length;
+      }
+      for (let i = from; i < to; i++) {
+        correctState[index][i] = value;
+      }
+    }
+    else {
+      for (let i = 0; i < correctState[index].length; i++) {
+        correctState[index][i] = value;
+      }
+    }
+  }
+
+  doNextWord(index: number, charIndex: number, key: string,
+    correctState: boolean[][], triggeredState: boolean[])
+    : FirstLetterTextInputDoNextWordResult {
+
+    if (index >= this.words.length) {
+      return {
+        index: this.words.length,
+        charIndex: 0,
+        wasCorrect: false,
+        reachedEnd: true,
+      }
+    }
+
+    let word = this.words[index];
+    let wordLowerCase = word.word.toLowerCase();
+    let originalIndex = index;
+    let originalCharIndex = charIndex;
+
+    let [nextWordCharacter, nextWordCharacterIndex]
+      = this.findNextCharacter(wordLowerCase, charIndex);
+    let [nextNextWordCharacter, nextNextWordCharacterIndex]
+      = this.findNextCharacter(wordLowerCase, nextWordCharacterIndex + 1);
+
+
+    // Determine whether the input is correct and mark the state
+    // accordingly.
+
+    let matches = key === nextWordCharacter || nextWordCharacter === "";
+    this.updateCorrectState(correctState, index, matches, charIndex,
+      nextNextWordCharacterIndex);
+
+    triggeredState[index] = true;
+    if (!matches && word.showOnlyIfTriggered) {
+      triggeredState[index] = false;
+    }
+
+
+    // Advance to the next word or a part of the word.
+
+    let nextWord = false;
+    if (word.byLetter) {
+      if (nextNextWordCharacter === "") {
+        index++;
+        charIndex = 0;
+        nextWord = true;
+      }
+      else {
+        charIndex = nextNextWordCharacterIndex;
+      }
+    }
+    else {
+      index++;
+      charIndex = 0;
+      nextWord = true;
+    }
+
+
+    // Ensure that the next word is actually a word, not just
+    // something that will be skipped entirely.
+
+    if (nextWord) {
+      while (index < this.words.length && this.words[index].skip) {
+        this.updateCorrectState(correctState, index, true);
+        index++;
+      }
+    }
+
+
+    // Check if this is an optional word, in which case maybe
+    // we should revisit the decision to mark this word wrong.
+
+    if (!matches && !word.byLetter && word.optional) {
+
+      // Speculatively look ahead to the next word. Note that we don't
+      // allow the last word to be an optional word at this point
+      // because we lack the ability to check the word on the next
+      // instance of this object (if there is one).
+
+      const r = this.doNextWord(index, charIndex, key, correctState,
+        triggeredState);
+      if (r.wasCorrect) {
+        this.updateCorrectState(correctState, originalIndex, true,
+          originalCharIndex, nextNextWordCharacterIndex);
+        triggeredState[originalIndex] = false;
+        return r;
+      }
+      else if (word.showOnlyIfTriggered) {
+        return this.doNextWord(index, charIndex, key, correctState,
+          triggeredState);
+      }
+    }
+
+
+    // Compose the return object.
+
+    return {
+      index: index,
+      charIndex: charIndex,
+      wasCorrect: matches,
+      reachedEnd: index >= this.words.length,
+    }
+  }
+
   handleKey(key: string) {
 
     if (this.editlockLocked) {
@@ -215,85 +378,25 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     if (key.length === 1 && key.match(/[a-z0-9]/i)) {
       if (this.state.index >= this.words.length) return;
 
-      let index = this.state.index;
-      let charIndex = this.state.charIndex;
-      let word = this.words[index];
-      let wordLowerCase = word.word.toLowerCase();
 
-      let nextWordCharacter = "";
-      let nextNextWordCharacter = "";
-      let nextNextWordCharacterIndex = wordLowerCase.length;
-      for (let i = charIndex; i < wordLowerCase.length; i++) {
-        const c = wordLowerCase.charAt(i);
-        if (c.match(/[a-z0-9]/i)) {
-          if (nextWordCharacter === "") {
-            nextWordCharacter = c;
-          }
-          else {
-            nextNextWordCharacter = c;
-            nextNextWordCharacterIndex = i;
-            break;
-          }
-        }
-      }
+      // Process the next word
 
-      let matches = key === nextWordCharacter || nextWordCharacter === "";
-      let correct = this.state.correct.slice(0);
-      if (!correct[index]) {
-        correct[index] = new Array<boolean>(wordLowerCase.length);
-      }
-      if (word.byLetter) {
-        for (let i = charIndex; i < nextNextWordCharacterIndex; i++) {
-          correct[index][i] = matches;
-        }
-      }
-      else {
-        for (let i = 0; i < correct[index].length; i++) {
-          correct[index][i] = matches;
-        }
-      }
-
-      let nextWord = false;
-      if (word.byLetter) {
-        if (nextNextWordCharacter === "") {
-          index++;
-          charIndex = 0;
-          nextWord = true;
-        }
-        else {
-          charIndex = nextNextWordCharacterIndex;
-        }
-      }
-      else {
-        index++;
-        charIndex = 0;
-        nextWord = true;
-      }
+      let correctState = this.state.correct.slice(0);
+      let triggeredState = this.state.triggered.slice(0);
+      let r = this.doNextWord(this.state.index,
+        this.state.charIndex, key, correctState, triggeredState);
 
 
-      // Ensure that the next word is actually a word, not just
-      // something that will be skipped entirely.
-
-      if (nextWord) {
-        while (index < this.words.length && this.words[index].skip) {
-          if (!correct[index]) {
-            correct[index]
-              = new Array<boolean>(this.words[index].word.length);
-          }
-          for (let i = 0; i < correct[index].length; i++) {
-            correct[index][i] = true;
-          }
-          index++;
-        }
-      }
+      // Update the state and call callbacks.
 
       this.setState({
-        index: index,
-        charIndex: charIndex,
-        correct: correct,
+        index: r.index,
+        charIndex: r.charIndex,
+        correct: correctState,
+        triggered: triggeredState,
       });
 
-      if (index >= this.words.length) {
+      if (r.reachedEnd) {
         // TODO Call this asynchronously?
         if (this.props.onCompletion !== undefined) {
           this.props.onCompletion();
@@ -332,6 +435,9 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       >
         <Text></Text>
         {this.words.map((w, i) => {
+          if (w.showOnlyIfTriggered && w.word.length > 0) {
+            if (!this.state.triggered[i]) return null;
+          }
           if (w.byLetter) {
             if (i > this.state.index) return null;
             return (
@@ -398,16 +504,22 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
         }
         {this.words.map((w, i) => {
           if (i < this.state.index) return null;
+          if (w.showOnlyIfTriggered) return null;
           let fromIndex = (i === this.state.index
             && this.words[this.state.index].byLetter)
             ? this.state.charIndex : 0;
+          let shiftLeft = i === this.state.index;
+          for (let j = i - 1; j >= this.state.index; j--) {
+            if (!this.words[j].showOnlyIfTriggered) break;
+            if (j === this.state.index) shiftLeft = true;
+          }
           return (
             <Text key={i}
               selectable={this.props.displayAll}
               style={[
                 {
                   color: this.props.displayAll ? "inherit" : "#00000000",
-                  marginLeft: i === this.state.index && !readOnly ? -5 : 0
+                  marginLeft: shiftLeft && !readOnly ? -5 : 0
                 },
                 this.props.displayAll ? style.unseen : null,
                 this.props.displayAll ? this.props.unseenStyle : null,

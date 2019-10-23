@@ -58,6 +58,7 @@ extends React.Component<TestScreenProps, TestScreenState> {
               allowBackspace={true}
               displayAllItems={false}
               displayAllTextInItem={false}
+              optionalWords={["a", "an", "the"]}
               items={book.items}
               />
           </ScrollView>

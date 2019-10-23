@@ -17,6 +17,7 @@ type BmcTextInputProps = {
   displayAllItems?: boolean;
   displayAllTextInItem?: boolean;
   everythingEditable?: boolean;
+  optionalWords?: string[];
   items: BMC.BmcItem[];
 }
 
@@ -96,6 +97,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
         || this.state.index === i
         || this.state.previousIndex === i)}
       style={STYLES.test}
+      optionalWords={this.props.optionalWords}
       text={label}
       onCompletion={() => {
         if (i + 1 < this.elements.length) {
