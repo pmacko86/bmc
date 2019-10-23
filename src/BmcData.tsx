@@ -16,6 +16,266 @@ export type BmcLibrary = {
   contents: BmcBook[]
 }
 
+const BMC_GENESIS : BmcBook = {
+  title: "Genesis",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Creation"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Garden of Eden/Adam and Eve"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Fall"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Cain and Abel"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Genealogy of Adam"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Noah builds the Ark"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Great Flood"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "End of the Flood"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Covenant of the Rainbow"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Genealogy of Noah"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Tower of Babel, genealogy of Shem"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Call of Abram"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Lot leaves Abram"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Melchizedek"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Abram's righteousness through faith, God's land covenant"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Birth of Ishmael"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Names changed to Abraham and Sarah, covenant of circumcision"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Intercessory prayer"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Destruction of Sodom and Gomorrah"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Abraham's lie/God's protection"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Birth of Isaac"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Sacrifice of Isaac"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Death of Sarah, burial in Machpelah"
+    },
+    {
+      chapter: 24,
+      part: "a",
+      label: "Rebekah in Haran"
+    },
+    {
+      chapter: 24,
+      part: "b",
+      label: "Marriage of Isaac and Rebekah"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Death of Abraham, birth of Esau and Jacob"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Treaty between Isaac and Abimelech"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Isaac blesses Jacob"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Vow at Bethel"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Jacob, Laban, Leah, Rachel"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Jacob's prosperity"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Jacob's return"
+    },
+    {
+      chapter: 32,
+      part: null,
+      label: "Jacob wrestles with God/name changed to Israel"
+    },
+    {
+      chapter: 33,
+      part: null,
+      label: "Meeting Esau"
+    },
+    {
+      chapter: 34,
+      part: null,
+      label: "Dinah incident"
+    },
+    {
+      chapter: 35,
+      part: null,
+      label: "El-Bethel covenant renewal, death of Isaac"
+    },
+    {
+      chapter: 36,
+      part: null,
+      label: "Genealogy of Esau"
+    },
+    {
+      chapter: 37,
+      part: null,
+      label: "Joseph is sold by his brothers"
+    },
+    {
+      chapter: 38,
+      part: null,
+      label: "Judah and Tamar"
+    },
+    {
+      chapter: 39,
+      part: null,
+      label: "Joseph is falsely accused"
+    },
+    {
+      chapter: 40,
+      part: null,
+      label: "Dreams of cupbearer and baker"
+    },
+    {
+      chapter: 41,
+      part: null,
+      label: "Joseph the Prime Minister"
+    },
+    {
+      chapter: 42,
+      part: null,
+      label: "Meeting the brothers 1"
+    },
+    {
+      chapter: 43,
+      part: null,
+      label: "Meeting the brothers 2"
+    },
+    {
+      chapter: 44,
+      part: null,
+      label: "Benjamin/silver cup"
+    },
+    {
+      chapter: 45,
+      part: null,
+      label: "Joseph makes himself known to his brothers"
+    },
+    {
+      chapter: 46,
+      part: null,
+      label: "Jacob's family moves to Egypt (70 people)"
+    },
+    {
+      chapter: 47,
+      part: null,
+      label: "Settling in Goshen"
+    },
+    {
+      chapter: 48,
+      part: null,
+      label: "Jacob blesses Ephraim and Manasseh"
+    },
+    {
+      chapter: 49,
+      part: null,
+      label: "Jacob blesses his 12 sons"
+    },
+    {
+      chapter: 50,
+      part: null,
+      label: "Death of Jacob and Joseph"
+    },
+  ]
+};
 
 const BMC_JOSHUA : BmcBook = {
   title: "Joshua",
@@ -1411,6 +1671,7 @@ const BMC_REVELATION : BmcBook = {
 
 export const BMC_DATA : BmcLibrary = {
   contents: [
+    BMC_GENESIS,
     BMC_JOSHUA,
     BMC_JUDGES,
     BMC_RUTH,
