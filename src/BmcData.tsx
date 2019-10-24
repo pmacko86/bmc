@@ -1,6 +1,6 @@
 
 export type BmcItem = {
-  chapter: number,
+  chapter: number | string,
   part: string | null,
   label: string,
   heading?: string,
@@ -15,6 +15,7 @@ export type BmcBook = {
 export type BmcLibrary = {
   contents: BmcBook[]
 }
+
 
 const BMC_GENESIS : BmcBook = {
   title: "Genesis",
@@ -273,6 +274,718 @@ const BMC_GENESIS : BmcBook = {
       chapter: 50,
       part: null,
       label: "Death of Jacob and Joseph"
+    },
+  ]
+};
+
+const BMC_EXODUS : BmcBook = {
+  title: "Exodus",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Suffering"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Moses"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Calling"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Return"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Meeting Pharaoh"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Promise"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Blood"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "FGF (frogs, gnats, flies)"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "PBH (pestilence, boils, hail)"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "LD (locusts, darkness)"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Warning of the firstborns' death"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Passover"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Escape"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Crossing Red Sea"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Song of salvation, bitter water"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Manna"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Meribah 1, Amalekites"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Jethro/delegation"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Sinai Covenant"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Ten Commandments"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Laws concerning life"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Laws concerning property"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Laws concerning feasts"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Covenant wedding ceremony"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "ATG (Ark of the Covenant, table for bread, golden lampstand)"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Veil"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Altar"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Priestly garments"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Priestly regulations"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Basin"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Skilled workers"
+    },
+    {
+      chapter: 32,
+      part: null,
+      label: "Golden calf"
+    },
+    {
+      chapter: 33,
+      part: null,
+      label: "Intercession"
+    },
+    {
+      chapter: 34,
+      part: null,
+      label: "Second tablets of the Ten Commandments"
+    },
+    {
+      chapter: 35,
+      part: null,
+      label: "Offerings"
+    },
+    {
+      chapter: 36,
+      part: null,
+      label: "Tabernacle construction begins"
+    },
+    {
+      chapter: 37,
+      part: null,
+      label: "ATGI (Ark of the Covenant, table for bread, "
+        + "golden lampstand, altar of incense)"
+    },
+    {
+      chapter: 38,
+      part: null,
+      label: "AB (altar, basin)"
+    },
+    {
+      chapter: 39,
+      part: null,
+      label: "Completion of priestly garments/completion of tabernacle"
+    },
+    {
+      chapter: 40,
+      part: null,
+      label: "Dedication"
+    },
+  ]
+};
+
+const BMC_LEVITICUS : BmcBook = {
+  title: "Leviticus",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Burnt offering"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Grain offering"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Peace offering"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Sin offering"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Guilt offering (for restitution)"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Duties of priests 1"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Duties of priests 2"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Consecration of priests"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Aaron's first sacrifice"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Death of Nadab and Abihu"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "CU (clean-unclean) food"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Purification after childbirth"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Laws for leprosy"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Laws for cleansing lepers"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Laws about bodily discharges"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "The Day of Atonement"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Laws for blood"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Sexual morality 1"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Be holy"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Sexual morality 2"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Qualifications for priests"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Portions of priests"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "7 feasts"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "LBB (lamp, bread of the Presence, blasphemer)"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Sabbath year (every 7 years), Jubilee (every 50 years)"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "BC (blessings, curses)"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Vows, tithes"
+    },
+  ]
+};
+
+const BMC_NUMBERS : BmcBook = {
+  title: "Numbers",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Census of Israel's army (603,550)"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Formation of camps"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Number of all Levites (1 month and up -- 22,000)"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Number of Levites in ministry (30-50 years old -- 8,580)"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "3 Purification laws (camp, sin, marriage)"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Nazarite laws"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Leaders' offerings"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Consecration of Levites"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Second Passover"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Departure"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Grumbling of the Israelites"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Grumbling of Miriam and Aaron"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "12 spies"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "40-year punishment"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Summary of sacrifices"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Rebellion of Korah, Dathan, Abiram"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Budding of Aaron's staff"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Duties and portions of priests and Levites"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Purification laws"
+    },
+    {
+      chapter: 20,
+      part: "a",
+      label: "Meribah 2"
+    },
+    {
+      chapter: 20,
+      part: "b",
+      label: "Aaron's death on Mt. Hor"
+    },
+    {
+      chapter: 21,
+      part: "a",
+      label: "Bronze snake"
+    },
+    {
+      chapter: 21,
+      part: "b",
+      label: "Conquest of Heshbon, Bashan"
+    },
+    {
+      chapter: "22-25",
+      part: null,
+      label: "Balaam-Balak incident"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Census of Israel's army (601,730)"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Joshua the new leader"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Feasts 1"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Feasts 2"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Vows"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Revenge against the Midianites"
+    },
+    {
+      chapter: 32,
+      part: null,
+      label: "Division of land (east of Jordan)"
+    },
+    {
+      chapter: 33,
+      part: null,
+      label: "Summary of wilderness journey"
+    },
+    {
+      chapter: 34,
+      part: null,
+      label: "Boundaries of land (west of Jordan)"
+    },
+    {
+      chapter: 35,
+      part: null,
+      label: "Cities of refuge"
+    },
+    {
+      chapter: 36,
+      part: null,
+      label: "Law of land inheritance for daughters "
+        + "(Zelophehad's daughters)"
+    },
+  ]
+};
+
+const BMC_DEUTERONOMY : BmcBook = {
+  title: "Deuteronomy",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      heading: "Summary of Numbers",
+      label: "12 spies"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Conquest of Heshbon"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Conquest of Bashan, Moses forbidden to "
+        + "enter the Promised Land"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Moses' exhortation"
+    },
+    {
+      chapter: 5,
+      part: null,
+      heading: "Summary of Exodus",
+      label: "Ten Commandments"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Shema"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Destroy completely!"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Do not forget!"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Golden calf"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Second tablets of the Ten Commandments, "
+        + "Circumcise your heart!"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "BC 1 (blessings, curses)"
+    },
+    {
+      chapter: 12,
+      part: null,
+      heading: "Summary of Leviticus",
+      label: "Pagan idols"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Israelite idols"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "CU (clean, unclean) food"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Sabbath year"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "3 feasts (Passover, Weeks, Booths)"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Laws concerning kings"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Provision for priests, promise for a prophet like Moses"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Cities of refuge"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Laws concerning warfare"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Miscellaneous laws 1"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Sexual morality"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "ACV (assembly, camp, vow)"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Miscellaneous laws 2"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Miscellaneous laws 3"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Tithes"
+    },
+    {
+      chapter: 27,
+      part: null,
+      heading: "Covenant in the plains of Moab",
+      label: "Curses"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "BC 2 (blessings, curses)"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Covenant in the plains of Moab 1"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Covenant in the plains of Moab 2"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Moses commissions Joshua as his successor"
+    },
+    {
+      chapter: 32,
+      part: null,
+      label: "Song of Moses"
+    },
+    {
+      chapter: 33,
+      part: null,
+      label: "Blessing of Moses"
+    },
+    {
+      chapter: 34,
+      part: null,
+      label: "Death of Moses"
     },
   ]
 };
@@ -542,6 +1255,918 @@ const BMC_RUTH : BmcBook = {
       chapter: 4,
       part: null,
       label: "Boaz marries Ruth (Obed--Jesse--David)"
+    },
+  ]
+};
+
+const BMC_1_SAMUEL : BmcBook = {
+  title: "1 Samuel",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Hannah's prayer"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Eli's sin, birth of Samuel"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Calling of Samuel"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Capture of the Ark"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Plagues of the Ark"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Return of the Ark"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Mizpah revival"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Request for king"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Meeting of Saul and Samuel"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Anointing of Saul"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Ammonite war"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Samuel's farewell sermon"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Saul's foolish sacrifice"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Jonathan's victory by faith"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "To obey is better than sacrifice"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Anointing of David"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "David kills Goliath"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Meeting of David and Jonathan, Saul's jealousy 1"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Saul's jealousy 2"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Friendship of David and Jonathan"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Escape to Nob"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Adullam 400"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Saving Keilah"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Corner of Saul's robe"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Samuel's death, marriage to Abigail"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Saul's spear and water jug"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Receiving Ziklag"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Medium of Endor"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Philistines distrust David"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Revenge against the Amalekites"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Saul's death"
+    },
+  ]
+};
+
+const BMC_2_SAMUEL : BmcBook = {
+  title: "2 Samuel",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "David's lament"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "King of Judah in Hebron (7 years)"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Abner's death"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Ish-bosheth's death"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "King of all Israel in Jerusalem (33 years)"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "The Ark of the Covenant brought to Jerusalem"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Davidic Covenant (Nathan's Oracle)"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Military victories"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Mephibosheth at king's table"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Ammonite war"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Bathsheba"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Nathan's rebuke / David's repentance"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Break-up of the family"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Absalom's escape and return"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Absalom's mutiny"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Shimei curses David"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Two strategies (Hushai vs. Ahithophel)"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Absalom's death"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "David's return"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Sheba's mutiny"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Avenging the Gibeonites"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "David's testimony"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "David's last words and his mighty men"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "David's foolish census / Araunah's (= Ornan) threshing floor"
+    },
+  ]
+};
+
+const BMC_1_KINGS : BmcBook = {
+  title: "1 Kings",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "King Solomon"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Purge"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Solomon's wisdom"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Prosperity 1"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Preparation for Temple construction"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Temple construction begins"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Construction of palace, Temple furnishings"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "The Ark of the Covenant brought to the Temple"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Solomonic Covenant"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Prosperity 2 (Queen of Sheba)"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Fall and death of Solomon"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Divided Kingdom"
+    },
+    {
+      chapter: 12,
+      part: "S",
+      label: "Rehoboam"
+    },
+    {
+      chapter: 12,
+      part: "N",
+      label: "Jeroboam"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Old prophet and young prophet"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Shishak invasion"
+    },
+    {
+      chapter: 15,
+      part: "S",
+      label: "Abijam (= Abijah), Asa, Jehoshaphat"
+    },
+    {
+      chapter: 15,
+      part: "N",
+      label: "Nadab, Baasha"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Elah, Zimri, Omri, Ahab"
+    },
+    {
+      chapter: 17,
+      part: "a",
+      label: "Elijah at Brook Cherith"
+    },
+    {
+      chapter: 17,
+      part: "b",
+      label: "Elijah at Zarephath"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Elijah at Mt. Carmel"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Elijah at Mt. Horeb (= Mt. Sinai)"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Wars with Syria"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Naboth's vineyard"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Ahab's death"
+    },
+  ]
+};
+
+const BMC_2_KINGS : BmcBook = {
+  title: "2 Kings",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Ahaziah"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Ascension of Elijah (chariots of fire)"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Jehoram (= Joram)"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Elisha's 4 miracles"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Naaman"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "God protects Elisha"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "4 lepers"
+    },
+    {
+      chapter: 8,
+      part: "N",
+      label: "Shunammite woman's land"
+    },
+    {
+      chapter: 8,
+      part: "S",
+      label: "Jehoram (= Joram), Ahaziah"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Jehu"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Jehu's purge"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Athaliah"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Jehoash (= Joash)"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Jehoahaz, Jehoash (= Joash)"
+    },
+    {
+      chapter: 14,
+      part: "S",
+      label: "Amaziah"
+    },
+    {
+      chapter: 14,
+      part: "N",
+      label: "Jeroboam II"
+    },
+    {
+      chapter: 15,
+      part: "S",
+      label: "Azariah (= Uzziah), Jotham"
+    },
+    {
+      chapter: 15,
+      part: "N",
+      label: "Zechariah, Shallum, Menahem, Pekahiah, Pekah"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Ahaz"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Hoshea (last king of Israel)"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Hezekiah"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Hekekiah's prayer"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Hezekiah's illness"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Manasseh, Amon"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Josiah (Book of the Law found)"
+    },
+    {
+      chapter: 23,
+      part: "a",
+      label: "Josiah's reforms"
+    },
+    {
+      chapter: 23,
+      part: "b",
+      label: "Jehoahaz"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Jehoiakim, Jehoiachin, Zedekiah (last king of Judah)"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Fall of Judah"
+    },
+  ]
+};
+
+const BMC_1_CHRONICLES : BmcBook = {
+  title: "1 Chronicles",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Genealogy of Adam"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Genealogy of Judah"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Genealogy of David"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Southern tribes"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "Eastern tribes"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Levites"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Northern tribes"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Tribe of Benjamin"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "List of returned exiles"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Saul's death"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "King David"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "David's mighty men"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Uzzah's death"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "David's fame"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "The Ark of the Covenant brought to Jerusalem"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "David's prayer of thanksgiving"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Davidic Covenant (Nathan's Oracle)"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Early victories of war"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Late victories of war"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Ammonite war"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "David's foolish census/Ornan's (= Araunah) threshing floor"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Preparation for Temple construction"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Duties of Levites"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Duties of priests"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Duties of musicians"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Duties of gatekeepers"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Military and administrative organization"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "David's charge to Solomon to build the Temple"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Offerings for Temple construction"
+    },
+  ]
+};
+
+const BMC_2_CHRONICLES : BmcBook = {
+  title: "2 Chronicles",
+  items: [
+    {
+      chapter: 1,
+      part: null,
+      label: "Solomon's wisdom"
+    },
+    {
+      chapter: 2,
+      part: null,
+      label: "Preparation for Temple construction"
+    },
+    {
+      chapter: 3,
+      part: null,
+      label: "Temple construction begins"
+    },
+    {
+      chapter: 4,
+      part: null,
+      label: "Temple furnishings"
+    },
+    {
+      chapter: 5,
+      part: null,
+      label: "The Ark of the Covenant brought to the Temple"
+    },
+    {
+      chapter: 6,
+      part: null,
+      label: "Solomon's dedication prayer and thanksgiving"
+    },
+    {
+      chapter: 7,
+      part: null,
+      label: "Dedication of the Temple/Feast of Tabernacles"
+    },
+    {
+      chapter: 8,
+      part: null,
+      label: "Prosperity"
+    },
+    {
+      chapter: 9,
+      part: null,
+      label: "Solomon's death"
+    },
+    {
+      chapter: 10,
+      part: null,
+      label: "Divided kingdom -- Rehoboam"
+    },
+    {
+      chapter: 11,
+      part: null,
+      label: "Rehoboam strengthens kingdom"
+    },
+    {
+      chapter: 12,
+      part: null,
+      label: "Shishak invasion"
+    },
+    {
+      chapter: 13,
+      part: null,
+      label: "Abijah (= Abijam)"
+    },
+    {
+      chapter: 14,
+      part: null,
+      label: "Reign of Asa"
+    },
+    {
+      chapter: 15,
+      part: null,
+      label: "Asa's reforms"
+    },
+    {
+      chapter: 16,
+      part: null,
+      label: "Hanani rebukes Asa (verse 9)"
+    },
+    {
+      chapter: 17,
+      part: null,
+      label: "Jehoshaphat's reforms"
+    },
+    {
+      chapter: 18,
+      part: null,
+      label: "Ahab's death"
+    },
+    {
+      chapter: 19,
+      part: null,
+      label: "Jehu (son of Hanani) rebukes Jehoshaphat"
+    },
+    {
+      chapter: 20,
+      part: null,
+      label: "Jehoshaphat's prayer"
+    },
+    {
+      chapter: 21,
+      part: null,
+      label: "Jehoram (= Joram)"
+    },
+    {
+      chapter: 22,
+      part: null,
+      label: "Ahaziah"
+    },
+    {
+      chapter: 23,
+      part: null,
+      label: "Athaliah"
+    },
+    {
+      chapter: 24,
+      part: null,
+      label: "Joash (= Jehoash)"
+    },
+    {
+      chapter: 25,
+      part: null,
+      label: "Amaziah"
+    },
+    {
+      chapter: 26,
+      part: null,
+      label: "Uzziah (= Azariah)"
+    },
+    {
+      chapter: 27,
+      part: null,
+      label: "Jotham"
+    },
+    {
+      chapter: 28,
+      part: null,
+      label: "Ahaz"
+    },
+    {
+      chapter: 29,
+      part: null,
+      label: "Hezekiah cleanses Temple"
+    },
+    {
+      chapter: 30,
+      part: null,
+      label: "Hezekiah restores Passover"
+    },
+    {
+      chapter: 31,
+      part: null,
+      label: "Hezekiah's reforms"
+    },
+    {
+      chapter: 32,
+      part: null,
+      label: "Hezekiah's death"
+    },
+    {
+      chapter: 33,
+      part: null,
+      label: "Manasseh, Amon"
+    },
+    {
+      chapter: 34,
+      part: null,
+      label: "Josiah's reforms"
+    },
+    {
+      chapter: 35,
+      part: null,
+      label: "Josiah's grand Passover celebration"
+    },
+    {
+      chapter: 36,
+      part: null,
+      label: "Jehoahaz, Jehoiakim, Jehoiachin, "
+        + "Zedekiah (last king of Judah)"
     },
   ]
 };
@@ -1672,9 +3297,19 @@ const BMC_REVELATION : BmcBook = {
 export const BMC_DATA : BmcLibrary = {
   contents: [
     BMC_GENESIS,
+    BMC_EXODUS,
+    BMC_LEVITICUS,
+    BMC_NUMBERS,
+    BMC_DEUTERONOMY,
     BMC_JOSHUA,
     BMC_JUDGES,
     BMC_RUTH,
+    BMC_1_SAMUEL,
+    BMC_2_SAMUEL,
+    BMC_1_KINGS,
+    BMC_2_KINGS,
+    BMC_1_CHRONICLES,
+    BMC_2_CHRONICLES,
     BMC_MATTHEW,
     BMC_MARK,
     BMC_LUKE,

@@ -209,7 +209,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
               style={[STYLES.bmcTextChapter, {
                 flexShrink: 0,
                 textAlign: "right",
-                width: 45,
+                width: 55,
               }]}
               >{s + "  "}</Text>
               {this.createInput(i, item.label, false)}
