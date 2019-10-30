@@ -22,5 +22,7 @@ const MainNavigator = createSwitchNavigator(routes, {
   backBehavior: "history",
 });
 
-const App = createBrowserApp(MainNavigator);
+const App = createBrowserApp(MainNavigator, {
+  history: "hash"
+});
 export default App;
