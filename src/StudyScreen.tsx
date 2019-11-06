@@ -1,11 +1,13 @@
 import React from 'react';
 import {
   KeyboardAvoidingView,
+  Platform,
   SafeAreaView,
   ScrollView,
   Text,
 } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
+import BmcDiagram from './BmcDiagram';
 import BmcTextInput from './BmcTextInput';
 import InstructionsBar from './InstructionsBar';
 import TopBar from './TopBar';
@@ -47,13 +49,15 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
           />
         <InstructionsBar
           text={"Please type just the first letter, but spell out acronyms:"} />
-        <KeyboardAvoidingView behavior={"padding"}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "android" ? undefined : "padding"}>
           <ScrollView
             style={{
               flexGrow: 1,
             }}
             keyboardShouldPersistTaps={"handled"}
             >
+            <BmcDiagram book={bookName} />
             <BmcTextInput
               allowBackspace={true}
               displayAllItems={true}
