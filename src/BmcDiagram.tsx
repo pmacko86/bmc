@@ -161,8 +161,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     return (
       <View>
         <View
-          style={{ width: svgWidth, height: svgHeight }}
           onLayout={e => {
+            //style={{ width: svgWidth, height: svgHeight }}
             // Get the absolute position, so that we can then
             // position floatable components relative to it.
             // (or: Should we be using method "measure"?)
