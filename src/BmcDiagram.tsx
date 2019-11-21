@@ -1,18 +1,3 @@
-import Svg, {
-  G,
-  Text,
-  TSpan,
-  Path,
-} from 'react-native-svg';
-
-import * as math from "mathjs";
-
-// Use this if you are using Expo
-//import { Svg } from 'expo';
-//const { Circle, Rect } = Svg;
-
-//import Svg, { Circle, Rect } from 'react-native-svg';
-
 import React from 'react';
 import {
   Animated,
@@ -23,11 +8,32 @@ import {
   View,
 } from "react-native";
 import * as ReactNative from "react-native";
+import Svg, {
+  G,
+  Text,
+  TSpan,
+  Path,
+} from 'react-native-svg';
+import * as math from "mathjs";
+import MeasureComponents from './MeasureComponents';
+
+// TODO Use this instead when not running in Expo
+// import TextSize from 'react-native-text-size';
 
 
+/**
+ * The diagram data (SVGs converted to a single JSON).
+ */
 const DATA = require("./assets/diagrams.json");
 
+/**
+ * The font size to use when there is no size specified.
+ */
+const DEFAULT_FONT_SIZE = 14;
 
+/**
+ * Point coordinates.
+ */
 type XY = {
   x: number;
   y: number;
@@ -40,6 +46,11 @@ type XY = {
 class SvgTransform {
   matrix: math.Matrix;
 
+  /**
+   * Create a new instance of the class.
+   *
+   * @param [math.Matrix] the 3x3 transform matrix.
+   */
   constructor(matrix?: math.Matrix) {
     if (matrix) {
       this.matrix = matrix;
@@ -122,7 +133,9 @@ class SvgTransform {
 }
 
 
-
+/**
+ * A text extracted from the SVG.
+ */
 class SvgText {
 
   text: string;
@@ -139,7 +152,7 @@ class SvgText {
     this.text = text;
     this.attrs = attrs;
     this.transform = transform;
-    this.fontSize = parseFloat(this.attrs.fontSize || "16");
+    this.fontSize = parseFloat(this.attrs.fontSize || "" + DEFAULT_FONT_SIZE);
     this.location = transform.apply(0, -this.fontSize);
     this.color = this.attrs.fill || "black";
   }
@@ -175,6 +188,8 @@ extends React.Component<DraggableTextProps, DraggableTextState> {
     this.deltaPosition = { x: 0, y: 0 };
     this.ref = null;
     this.state = { pan: new Animated.ValueXY() };
+    this.state.pan.addListener((value) => this.deltaPosition = value);
+    this.state.pan.setValue({ x: 0, y: 0 });
   }
 
 
@@ -207,11 +222,8 @@ extends React.Component<DraggableTextProps, DraggableTextState> {
   }
 
 
-  UNSAFE_componentWillMount() {
-    this.deltaPosition = { x: 0, y: 0 };
-    if (this.props.draggable) {
-      this.state.pan.addListener((value) => this.deltaPosition = value);
-      this.state.pan.setValue({ x: 0, y: 0 });
+  UNSAFE_componentWillReceiveProps(props: DraggableTextProps) {
+    if (props.draggable) {
       this.panResponder = PanResponder.create({
         onStartShouldSetPanResponder: (e, gesture) => true,
         onPanResponderMove: Animated.event([
@@ -239,16 +251,19 @@ extends React.Component<DraggableTextProps, DraggableTextState> {
         }
       });
     }
+    else {
+      this.panResponder = PanResponder.create({});
+      this.state.pan.setValue({ x: 0, y: 0 });
+    }
   }
 
 
   render() {
-    let panHandlers = this.panResponder ? this.panResponder.panHandlers : [];
+    let panHandlers = this.panResponder ? this.panResponder.panHandlers : {};
     return (
       <Animated.View
         style={{
-          transform: !this.props.draggable
-            ? null : this.state.pan.getTranslateTransform(),
+          transform: this.state.pan.getTranslateTransform(),
           // @ts-ignore
           position: this.props.style.position,
           // @ts-ignore
@@ -279,6 +294,7 @@ type BmcDiagramProps = {
 
 type BmcDiagramState = {
   layout?: LayoutRectangle;
+  testLayouts?: LayoutRectangle[];
   correctTextLocation: boolean[];
 }
 
@@ -372,6 +388,35 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
 
   /**
+   * Compute the test layouts
+   *
+   * @param [LayoutRectangle[]] layouts the layouts with dimensions filled in.
+   */
+  doTestLayout(layouts: LayoutRectangle[]) {
+    if (this.props.testMode && this.svgViewBox) {
+      let tx = this.svgViewBox.x + this.svgViewBox.width;
+      let ty = this.svgViewBox.y;
+      let widest = 0;
+      let paddingX = 15;
+      let paddingY = 5;
+      this.texts.forEach((t, i) => {
+        t.testLocation = { x: tx, y: ty };
+        ty += t.fontSize + paddingY;
+        if (layouts[i].width > widest) widest = layouts[i].width;
+        if (this.svgViewBox && ty > this.svgViewBox.y + this.svgViewBox.height) {
+          ty = this.svgViewBox.y;
+          tx += paddingX  + widest;
+          widest = 0;
+        }
+      });
+      this.setState({
+        testLayouts: layouts,
+      });
+    }
+  }
+
+
+  /**
    * Extract text.
    *
    * @param [any] svg the SVG JSON to render
@@ -442,7 +487,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
    *
    * @param [any] svg the SVG JSON to render
    */
-  renderSvg(svg: any) {
+  renderSvg(svg: any, key?: any) {
 
     if (svg.text) return svg.text;
 
@@ -461,8 +506,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     if (svg.type === "G") {
       return (
-        <G {...attrs}>
-          {svg.childs && svg.childs.map((c: any) => this.renderSvg(c))}
+        <G key={key} {...attrs}>
+          {svg.childs
+            && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
         </G>
       );
     }
@@ -474,8 +520,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         attrs.d = attrs.d.replace("z", " Z ");
       }
       return (
-        <Path {...attrs}>
-          {svg.childs && svg.childs.map((c: any) => this.renderSvg(c))}
+        <Path key={key} {...attrs}>
+          {svg.childs
+            && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
         </Path>
       );
     }
@@ -483,16 +530,18 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     if (!this.props.testMode) {
       if (svg.type === "Text") {
         return (
-          <Text {...attrs}>
-            {svg.childs && svg.childs.map((c: any) => this.renderSvg(c))}
+          <Text key={key} {...attrs}>
+            {svg.childs
+              && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Text>
         );
       }
 
       if (svg.type === "TSpan" || svg.name === "tspan") {
         return (
-          <TSpan {...attrs}>
-            {svg.childs && svg.childs.map((c: any) => this.renderSvg(c))}
+          <TSpan key={key} {...attrs}>
+            {svg.childs
+              && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </TSpan>
         );
       }
@@ -562,14 +611,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             width={svgWidth}
             height={svgHeight}
             viewBox={this.svg.attrs.viewBox}>
-            {this.svg.childs.map((c: any) => this.renderSvg(c))}
+            {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Svg>
-        {/*<Animated.View
-          style={{ transform: this.state.pan.getTranslateTransform(),
-            background: "lime"
-           }}
-          {...this.panResponder.panHandlers}>
-        </Animated.View>*/}
       </View>
       {this.props.testMode && this.texts.map((t, index) => {
         let atTestLocation = !this.state.correctTextLocation[index];
@@ -582,6 +625,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         }
         return (
           <DraggableText
+            key={index}
             text={t.text}
             draggable={atTestLocation}
             dropLocation={dropLocation && {
@@ -605,6 +649,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             }}
             />);
         })}
+        {this.props.testMode && !this.state.testLayouts &&
+          <MeasureComponents onMeasure={layouts => this.doTestLayout(layouts)}>
+            {this.props.testMode && this.texts.map((t, index) => {
+              return <ReactNative.Text key={index}>{t.text}</ReactNative.Text>
+            })}
+          </MeasureComponents>}
       </View>
     );
   }
