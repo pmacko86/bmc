@@ -7,6 +7,7 @@ import {
   TextInput,
   TextInputChangeEventData,
   TextInputKeyPressEventData,
+  TextInputProps,
   TouchableWithoutFeedback,
   View
 } from 'react-native';
@@ -409,6 +410,10 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     const isAndroidWeb = navigator && navigator.userAgent
       ? navigator.userAgent.indexOf("Android") >= 0 : false;
     const readOnly = this.props.readOnly !== undefined && this.props.readOnly;
+    const platformDependentProps:TextInputProps =
+      Platform.OS === "web" ? {} : {
+        autoCompleteType: "off"
+      };
     /*const currentWord = this.state.index < this.words.length
       ? this.words[this.state.index] : null;*/
     const style = {
@@ -488,7 +493,6 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
                 ? { height: 18 /* XXX do not hardcode! */ } : undefined]}
               onKeyPress={this.handleKeyPress}
               onChange={this.handleChange}
-              autoCompleteType={"off"}
               autoCorrect={false}
               autoFocus={this.props.autoFocus}
               editable={true}
@@ -499,6 +503,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
               secureTextEntry={false}
               textContentType={"none"}
               autoCapitalize={"characters"}
+              {...platformDependentProps}
               />
           )
         }
