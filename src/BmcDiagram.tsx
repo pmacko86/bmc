@@ -1,10 +1,7 @@
 import React from 'react';
 import {
-  Animated,
   Dimensions,
   LayoutRectangle,
-  PanResponder,
-  PanResponderInstance,
   View,
 } from "react-native";
 import * as ReactNative from "react-native";
@@ -15,6 +12,7 @@ import Svg, {
   Path,
 } from 'react-native-svg';
 import * as math from "mathjs";
+import Draggable from './Draggable';
 import MeasureComponents from './MeasureComponents';
 
 // TODO Use this instead when not running in Expo
@@ -30,6 +28,7 @@ const DATA = require("./assets/diagrams.json");
  * The font size to use when there is no size specified.
  */
 const DEFAULT_FONT_SIZE = 14;
+
 
 /**
  * Point coordinates.
@@ -159,133 +158,6 @@ class SvgText {
 }
 
 
-type DraggableTextProps = {
-  text: string;
-  draggable?: boolean;
-  dropLocation?: LayoutRectangle;
-  dropLocationRelative?: View | ReactNative.Text | null;
-  onDropToLocation?: () => void;
-  style: {};
-}
-
-
-type DraggableTextState = {
-  pan: Animated.ValueXY;
-}
-
-
-class DraggableText
-extends React.Component<DraggableTextProps, DraggableTextState> {
-
-  ref: ReactNative.Text | null;
-
-  deltaPosition: XY;
-  panResponder: PanResponderInstance | undefined;
-
-
-  constructor(props: DraggableTextProps) {
-    super(props);
-    this.deltaPosition = { x: 0, y: 0 };
-    this.ref = null;
-    this.state = { pan: new Animated.ValueXY() };
-    this.state.pan.addListener((value) => this.deltaPosition = value);
-    this.state.pan.setValue({ x: 0, y: 0 });
-  }
-
-
-  onRelease(gestureX: number, gestureY: number,
-    relativeX: number, relativeY: number) {
-
-    if (!this.props.dropLocation) {
-      Animated.spring(this.state.pan, {
-        toValue: { x: 0, y: 0 },
-        friction: 10
-      }).start();
-      return;
-    }
-
-    const gx = gestureX;
-    const gy = gestureY;
-    const dlx = this.props.dropLocation.x + relativeX;
-    const dly = this.props.dropLocation.y + relativeY;
-
-    if (gx >= dlx && gx < dlx + this.props.dropLocation.width
-      && gy >= dly && gy < dly + this.props.dropLocation.height) {
-      if (this.props.onDropToLocation) this.props.onDropToLocation();
-    }
-    else {
-      Animated.spring(this.state.pan, {
-        toValue: { x: 0, y: 0 },
-        friction: 10
-      }).start();
-    }
-  }
-
-
-  UNSAFE_componentWillReceiveProps(props: DraggableTextProps) {
-    if (props.draggable) {
-      this.panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: (e, gesture) => true,
-        onPanResponderMove: Animated.event([
-          null, { dx: this.state.pan.x, dy: this.state.pan.y }
-        ]),
-        onPanResponderRelease: (e, gesture) => {
-          const gx = gesture.moveX;
-          const gy = gesture.moveY;
-          if (this.ref) {
-            this.ref.measure((textX, textY, textW, textH, textPX, textPY) => {
-              const dx = gx - textPX;
-              const dy = gy - textPY;
-              if (this.props.dropLocationRelative) {
-                this.props.dropLocationRelative.measure(
-                  (x, y, w, h, px, py) => {
-                    this.onRelease(gx, gy, px + dx, py + dy);
-                  }
-                );
-              }
-              else {
-                this.onRelease(gx, gy, dx, dy);
-              }
-            });
-          }
-        }
-      });
-    }
-    else {
-      this.panResponder = PanResponder.create({});
-      this.state.pan.setValue({ x: 0, y: 0 });
-    }
-  }
-
-
-  render() {
-    let panHandlers = this.panResponder ? this.panResponder.panHandlers : {};
-    return (
-      <Animated.View
-        style={{
-          transform: this.state.pan.getTranslateTransform(),
-          // @ts-ignore
-          position: this.props.style.position,
-          // @ts-ignore
-          left: this.props.style.left,
-          // @ts-ignore
-          top: this.props.style.top,
-        }}
-        {...panHandlers}>
-        <ReactNative.Text
-          ref={r => { this.ref = r; }}
-          selectable={false}
-          style={[this.props.style, {
-            position: "relative",
-            left: 0,
-            top: 0,
-          }]}
-          >{this.props.text}</ReactNative.Text>
-      </Animated.View>);
-  }
-}
-
-
 type BmcDiagramProps = {
   book: string;
   testMode?: boolean;
@@ -355,9 +227,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       correctTextLocation[i] = !this.props.testMode;
     }
 
-
-    // Compute label locations, both for the diagram and for testing.
-
     const collator = new Intl.Collator(undefined, {
       numeric: true,
       sensitivity: 'base'
@@ -366,16 +235,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       if (a.color !== b.color) return a.color < b.color ? -1 : 1;
       return collator.compare(a.text, b.text);
     });
-
-    if (this.props.testMode && this.svgViewBox) {
-      let tx = this.svgViewBox.x + this.svgViewBox.width;
-      let ty = this.svgViewBox.y;
-      let paddingY = 5;
-      this.texts.forEach(t => {
-        t.testLocation = { x: tx, y: ty };
-        ty += t.fontSize + paddingY;
-      });
-    }
 
 
     // Set the initial state
@@ -403,7 +262,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         t.testLocation = { x: tx, y: ty };
         ty += t.fontSize + paddingY;
         if (layouts[i].width > widest) widest = layouts[i].width;
-        if (this.svgViewBox && ty > this.svgViewBox.y + this.svgViewBox.height) {
+        if (this.svgViewBox &&
+          ty + t.fontSize > this.svgViewBox.y + this.svgViewBox.height) {
           ty = this.svgViewBox.y;
           tx += paddingX  + widest;
           widest = 0;
@@ -624,10 +484,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           dropLocation = layoutTransform.apply(t.location);
         }
         return (
-          <DraggableText
+          <Draggable
             key={index}
-            text={t.text}
-            draggable={atTestLocation}
+            disabled={!atTestLocation}
             dropLocation={dropLocation && {
               x: dropLocation.x-50,
               y: dropLocation.y-50,
@@ -646,13 +505,25 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               top: location.y,
               color: t.color,
               fontSize: fontSize,
-            }}
-            />);
+            }}>
+            <ReactNative.Text
+              selectable={false}
+              style={{
+                color: t.color,
+                fontSize: fontSize,
+                letterSpacing: -1,
+              }}
+              >{t.text}</ReactNative.Text>
+          </Draggable>);
         })}
         {this.props.testMode && !this.state.testLayouts &&
           <MeasureComponents onMeasure={layouts => this.doTestLayout(layouts)}>
             {this.props.testMode && this.texts.map((t, index) => {
-              return <ReactNative.Text key={index}>{t.text}</ReactNative.Text>
+              return (
+                <ReactNative.Text
+                  key={index}
+                  style={{letterSpacing: -1}}
+                  >{t.text}</ReactNative.Text>)
             })}
           </MeasureComponents>}
       </View>
