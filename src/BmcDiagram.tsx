@@ -11,9 +11,10 @@ import Svg, {
   TSpan,
   Path,
 } from 'react-native-svg';
-import * as math from "mathjs";
+
 import Draggable from './Draggable';
 import MeasureComponents from './MeasureComponents';
+import SvgTransform from './SvgTransform';
 
 // TODO Use this instead when not running in Expo
 // import TextSize from 'react-native-text-size';
@@ -36,99 +37,6 @@ const DEFAULT_FONT_SIZE = 14;
 type XY = {
   x: number;
   y: number;
-}
-
-
-/**
- * Class representing SVG transform.
- */
-class SvgTransform {
-  matrix: math.Matrix;
-
-  /**
-   * Create a new instance of the class.
-   *
-   * @param [math.Matrix] the 3x3 transform matrix.
-   */
-  constructor(matrix?: math.Matrix) {
-    if (matrix) {
-      this.matrix = matrix;
-    }
-    else {
-      this.matrix = math.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]], "dense");
-    }
-  }
-
-  static fromTranslate(x: number, y: number): SvgTransform {
-    let m = math.matrix([[1, 0, x], [0, 1, y], [0, 0, 1]], "dense");
-    return new SvgTransform(m);
-  }
-
-  static fromScale(x: number, y?: number): SvgTransform {
-    let yy = y === undefined ? x : y;
-    let m = math.matrix([[x, 0, 0], [0, yy, 0], [0, 0, 1]], "dense");
-    return new SvgTransform(m);
-  }
-
-  clone(): SvgTransform {
-    let m = this.matrix;
-    return new SvgTransform(m);
-  }
-
-  then(second: SvgTransform | null) {
-    if (second === null) return this.clone();
-    let m = math.multiply(second.matrix, this.matrix) as math.Matrix;
-    return new SvgTransform(m);
-  }
-
-  apply(x: XY): XY;
-  apply(x: number, y: number): XY;
-  apply(p0: XY | number, p1?: number): XY {
-
-    let x, y;
-    if (typeof p0 === "number" && typeof p1 === "number") {
-      x = p0;
-      y = p1;
-    }
-    else if (typeof p0 === "object") {
-      x = (p0 as XY).x;
-      y = (p0 as XY).y;
-    }
-    else {
-      x = 0;
-      y = 0;
-    }
-
-    let v = math.matrix([[x], [y], [1]]);
-    let r = math.multiply(this.matrix, v) as math.Matrix;
-    let p = { x: r.get([0, 0]), y: r.get([1, 0]) };
-    return p;
-  }
-
-  static parse(s: string): SvgTransform {
-    let r = new SvgTransform();
-    let parts = s.split(/\)[^a-zA-Z0-9]*/);
-    for (let i = 0; i < parts.length; i++) {
-      if (parts[i] === "") continue;
-      let [fn, t] = parts[i].split("(", 2);
-      let params = t.split(/ +/);
-      if (fn === "translate" && params.length === 2) {
-        let x = parseFloat(params[0]);
-        let y = parseFloat(params[1]);
-        r = r.then(SvgTransform.fromTranslate(x, y));
-      }
-      if (fn === "scale" && params.length === 1) {
-        let x = parseFloat(params[0]);
-        r = r.then(SvgTransform.fromScale(x, x));
-      }
-      if (fn === "scale" && params.length === 2) {
-        let x = parseFloat(params[0]);
-        let y = parseFloat(params[1]);
-        r = r.then(SvgTransform.fromScale(x, y));
-      }
-    }
-    return r;
-  }
 }
 
 
