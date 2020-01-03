@@ -2,15 +2,12 @@ import React from 'react';
 import {
   Dimensions,
   LayoutRectangle,
+  Text,
   View,
 } from "react-native";
-import * as ReactNative from "react-native";
-import Svg, {
-  G,
-  Text,
-  TSpan,
-  Path,
-} from 'react-native-svg';
+
+import Svg from 'react-native-svg';
+import * as SvgComponent from 'react-native-svg';
 
 import Draggable from './Draggable';
 import MeasureComponents from './MeasureComponents';
@@ -41,10 +38,97 @@ type XY = {
 
 
 /**
- * A text extracted from the SVG.
+ * A text span
+ */
+class SvgTextSpan {
+
+  text: string;
+  attrs: any;
+  transform: SvgTransform;
+
+  color: string;
+  origin: XY;
+  scale: number;
+  fontSize: number;
+  fontSizeScaled: number;
+
+
+  /**
+   * The constructor.
+   *
+   * @param [string] text the text
+   * @param [any] attrs the attributes
+   * @param [SvgTransform] transform the transform
+   */
+  constructor(text: string, attrs: any, transform: SvgTransform) {
+
+    this.text = text;
+    this.attrs = attrs;
+    this.transform = transform;
+
+
+    // Derrived attributes
+
+    this.color = this.attrs.fill || "black";
+    this.fontSize = this.attrs.fontSize
+      ? parseFloat(this.attrs.fontSize) : DEFAULT_FONT_SIZE;
+    const vectorOne = this.transform.apply(1, 0);
+    this.origin = this.transform.apply(0, 0);
+    this.scale = Math.sqrt((vectorOne.x - this.origin.x)**2
+      + (vectorOne.y - this.origin.y)**2);
+    this.fontSizeScaled = this.fontSize * this.scale;
+    this.origin.y -= this.fontSizeScaled;
+  }
+
+
+  /**
+   * Get the location.
+   *
+   * @return [XY] the location.
+   */
+  location() {
+    return this.origin;
+  }
+
+
+  /**
+   * Render using React Native (not SVG).
+   *
+   * @param [any] key the key.
+   * @param [number] scale the scale.
+   * @param [boolean] ignoreLocation whether to ignore location.
+   * @return [React.Component] the rendered component.
+   */
+  renderNative(key: any, scale: number = 1, ignoreLocation: boolean = false) {
+    return (
+      <Text
+        key={key}
+        selectable={false}
+        style={[
+          {
+            color: this.color,
+            fontSize: scale * this.fontSizeScaled,
+            letterSpacing: -1,
+          },
+          !ignoreLocation ? {
+            position: "absolute",
+            left: scale * this.origin.x,
+            top: scale * this.origin.y,
+          } : {},
+        ]}
+        >{this.text.replace(/ /g, "\u00a0" /* &nbsp; */)}</Text>
+    );
+  }
+}
+
+
+/**
+ * A text component extracted from the SVG, which can consist of zero
+ * or more text spans.
  */
 class SvgText {
 
+  svg: {[key: string]: any};
   text: string;
   attrs: any;
   transform: SvgTransform;
@@ -52,16 +136,214 @@ class SvgText {
   location: XY;
   fontSize: number;
   color: string;
+  textSpans: SvgTextSpan[];
 
   testLocation?: XY;
 
-  constructor(text: string, attrs: any, transform: SvgTransform) {
-    this.text = text;
-    this.attrs = attrs;
+
+  /**
+   * The constructor.
+   *
+   * @oaram [{[key: string]: any}] svg the SVG
+   * @param [SvgTransform] transform the transform
+   */
+  constructor(svg: {[key: string]: any}, transform: SvgTransform) {
+
+    this.svg = svg;
     this.transform = transform;
+
+    this.text = this.extractText(svg);
+    this.attrs = svg.attrs;
+    this.location = transform.apply(0, 0);
+
+    // TODO Remove these
     this.fontSize = parseFloat(this.attrs.fontSize || "" + DEFAULT_FONT_SIZE);
-    this.location = transform.apply(0, -this.fontSize);
     this.color = this.attrs.fill || "black";
+
+
+    // Extract the individual text spans
+
+    const locationTransform
+      = SvgTransform.fromTranslate(-this.location.x, -this.location.y);
+    this.textSpans = [];
+
+    const fn = (
+      svg: any,
+      transformSoFar: SvgTransform | null,
+      textAttrs: any | null,
+    ) => {
+
+      // Determine the new transform
+
+      let transform = transformSoFar || new SvgTransform();
+      if (svg.attrs) {
+        if (svg.attrs.transform) {
+          transform = transform.then(SvgTransform.parse(svg.attrs.transform));
+        }
+        if (svg.attrs.x || svg.attrs.y) {
+          transform = transform.then(SvgTransform.fromTranslate(
+            svg.attrs.x ? parseFloat(svg.attrs.x) : 0,
+            svg.attrs.y ? parseFloat(svg.attrs.y) : 0));
+        }
+      }
+
+
+      // Handle the text component and the text spans
+
+      if (svg.type === "Text" || svg.type === "TSpan"
+        || svg.name === "tspan") {
+        if (!svg.childs) return;
+        let a = textAttrs ? Object.assign({}, textAttrs) : {};
+        if (svg.attrs) {
+          for (const k of Object.keys(svg.attrs)) {
+            a[k] = svg.attrs[k];
+          }
+        }
+        svg.childs.map((c: any) => fn(c, transform, a));
+      }
+
+
+      // Handle the actual text
+
+      if (svg.text && textAttrs) {
+        this.textSpans.push(new SvgTextSpan(svg.text, textAttrs,
+          transform.then(locationTransform)));
+      }
+    };
+
+    fn(this.svg, null, this.attrs);
+  }
+
+
+  /**
+   * Extract the text (e.g. for sorting)
+   *
+   * @param [any] svg the SVG
+   * @return [string] the extracted text
+   */
+  extractText(svg: any): string {
+
+    if (svg.text) return svg.text;
+
+    if (svg.type === "Text"
+      || svg.type === "TSpan" || svg.name === "tspan") {
+      if (svg.childs) {
+        return svg.childs
+          .map((c: any) => this.extractText(c))
+          .reduce((t: string, c: string) => t + c, "");
+      }
+    }
+
+    return "";
+  }
+
+
+  /**
+   * Render using React Native (not SVG).
+   *
+   * @param [any] key the key.
+   * @param [number] scale the scale.
+   * @return [React.Component] the rendered component.
+   */
+  renderNative(key?: any, scale: number = 1) {
+    return (
+      <View
+        key={key}
+        style={{
+          position: "relative"
+        }}>
+        {this.textSpans.map((s, i) => s.renderNative(i, scale))}
+      </View>
+    );
+  }
+
+
+  /**
+   * Create a component for measurement.
+   *
+   * @param [any] key the key.
+   * @param [number] scale the scale.
+   * @return [React.Component] the rendered component.
+   */
+  renderMeasurementComponent(key?: any, scale: number = 1) {
+    return (
+      <MeasureComponents key={key} onMeasure={l => l/*this.handleMeasure(l)*/}>
+        {this.textSpans.map((s, i) => s.renderNative(i, scale, true))}
+      </MeasureComponents>
+    );
+  }
+}
+
+
+type SvgTextComponentProps = {
+  text: SvgText;
+  scale?: number;
+}
+
+
+type SvgTextComponentState = {
+  spanLayouts?: LayoutRectangle[];
+  overallLayout?: LayoutRectangle;
+}
+
+
+/**
+ * A component for rendering a collection of SVG text spans.
+ */
+class SvgTextComponent
+extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
+
+  /**
+   * The constructor.
+   *
+   * @param [SvgTextComponentProps] props the properties.
+   */
+  constructor(props: SvgTextComponentProps) {
+    super(props);
+    this.state = {};
+  }
+
+
+  /**
+   * Handle the measurement.
+   *
+   * @param [LayoutRectangle[]] layouts the layouts with dimensions filled in.
+   */
+  handleMeasure(layouts: LayoutRectangle[]) {
+    var overall: LayoutRectangle = { x: 0, y: 0, width: 0, height: 0 };
+    for (var i = 0; i < layouts.length; i++) {
+      var p = this.props.text.textSpans[i].location();
+      overall.width = Math.max(overall.width, layouts[i].width + p.x);
+      overall.height = Math.max(overall.height, layouts[i].height + p.y);
+    }
+    this.setState({
+      spanLayouts: layouts,
+      overallLayout: overall,
+    });
+  }
+
+
+  /**
+   * Render the component.
+   */
+  render() {
+    const scale = this.props.scale === undefined ? 1 : this.props.scale;
+    return (
+      <View
+        style={{
+          position: "relative",
+          width: this.state.overallLayout
+            ? this.state.overallLayout.width * scale + 1 : undefined,
+          height: this.state.overallLayout
+            ? this.state.overallLayout.height * scale : undefined,
+        }}>
+        {this.state.overallLayout
+          && (this.props.text.textSpans.map((s, i) => s.renderNative(i, scale)))}
+        <MeasureComponents key={-1} onMeasure={l => this.handleMeasure(l)}>
+          {this.props.text.textSpans.map((s, i) => s.renderNative(i, 1, true))}
+        </MeasureComponents>
+      </View>
+    );
   }
 }
 
@@ -168,12 +450,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       let paddingY = 5;
       this.texts.forEach((t, i) => {
         t.testLocation = { x: tx, y: ty };
-        ty += t.fontSize + paddingY;
+        ty += layouts[i].height + paddingY;
         if (layouts[i].width > widest) widest = layouts[i].width;
         if (this.svgViewBox &&
-          ty + t.fontSize > this.svgViewBox.y + this.svgViewBox.height) {
+          ty + layouts[i].height > this.svgViewBox.y + this.svgViewBox.height) {
           ty = this.svgViewBox.y;
-          tx += paddingX  + widest;
+          tx += paddingX + widest;
           widest = 0;
         }
       });
@@ -196,7 +478,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     const fn = (
       svg: any,
       transformSoFar: SvgTransform | null,
-      textAttrs: any | null,
     ) => {
 
       // Determine the new transform
@@ -218,34 +499,19 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
       if (svg.type === "G") {
         if (svg.childs) {
-          svg.childs.map((c: any) => fn(c, transform, null));
+          svg.childs.map((c: any) => fn(c, transform));
         }
       }
 
 
-      // Handle the text component and the text spans
+      // Handle the text component
 
-      if (svg.type === "Text" || svg.type === "TSpan"
-        || svg.name === "tspan") {
-        if (!svg.childs) return;
-        let a = textAttrs ? Object.assign({}, textAttrs) : {};
-        if (svg.attrs) {
-          for (const k of Object.keys(svg.attrs)) {
-            a[k] = svg.attrs[k];
-          }
-        }
-        svg.childs.map((c: any) => fn(c, transform, a));
-      }
-
-
-      // Handle the actual text
-
-      if (svg.text && textAttrs) {
-        r.push(new SvgText(svg.text, textAttrs, transform));
+      if (svg.type === "Text") {
+        r.push(new SvgText(svg, transform));
       }
     };
 
-    fn(svg, null, null);
+    fn(svg, null);
     return r;
   }
 
@@ -274,10 +540,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     if (svg.type === "G") {
       return (
-        <G key={key} {...attrs}>
+        <SvgComponent.G key={key} {...attrs}>
           {svg.childs
             && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
-        </G>
+        </SvgComponent.G>
       );
     }
 
@@ -288,29 +554,29 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         attrs.d = attrs.d.replace("z", " Z ");
       }
       return (
-        <Path key={key} {...attrs}>
+        <SvgComponent.Path key={key} {...attrs}>
           {svg.childs
             && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
-        </Path>
+        </SvgComponent.Path>
       );
     }
 
     if (!this.props.testMode) {
       if (svg.type === "Text") {
         return (
-          <Text key={key} {...attrs}>
+          <SvgComponent.Text key={key} {...attrs}>
             {svg.childs
               && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
-          </Text>
+          </SvgComponent.Text>
         );
       }
 
       if (svg.type === "TSpan" || svg.name === "tspan") {
         return (
-          <TSpan key={key} {...attrs}>
+          <SvgComponent.TSpan key={key} {...attrs}>
             {svg.childs
               && svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
-          </TSpan>
+          </SvgComponent.TSpan>
         );
       }
     }
@@ -414,24 +680,19 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               color: t.color,
               fontSize: fontSize,
             }}>
-            <ReactNative.Text
-              selectable={false}
-              style={{
-                color: t.color,
-                fontSize: fontSize,
-                letterSpacing: -1,
-              }}
-              >{t.text}</ReactNative.Text>
+            {this.state.testLayouts && <SvgTextComponent
+              text={t}
+              scale={scale}
+              />}
           </Draggable>);
         })}
         {this.props.testMode && !this.state.testLayouts &&
           <MeasureComponents onMeasure={layouts => this.doTestLayout(layouts)}>
             {this.props.testMode && this.texts.map((t, index) => {
-              return (
-                <ReactNative.Text
-                  key={index}
-                  style={{letterSpacing: -1}}
-                  >{t.text}</ReactNative.Text>)
+              return <SvgTextComponent
+                text={t}
+                scale={scale}
+                />;
             })}
           </MeasureComponents>}
       </View>
