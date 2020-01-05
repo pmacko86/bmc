@@ -52,6 +52,8 @@ class SvgTextSpan {
   fontSize: number;
   fontSizeScaled: number;
 
+  layout?: LayoutRectangle; // will be filled out asynchronously
+
 
   /**
    * The constructor.
@@ -86,8 +88,20 @@ class SvgTextSpan {
    *
    * @return [XY] the location.
    */
-  location() {
+  get location(): XY {
     return this.origin;
+  }
+
+
+  /**
+   * Clone.
+   *
+   * @return [SvgTextSpan] the cloned span.
+   */
+  clone(): SvgTextSpan {
+    let r = new SvgTextSpan(this.text, this.attrs, this.transform);
+    r.layout = this.layout;
+    return r;
   }
 
 
@@ -128,10 +142,10 @@ class SvgTextSpan {
  */
 class SvgText {
 
-  svg: {[key: string]: any};
+  //svg: {[key: string]: any};
+  //attrs: any;
+  //transform: SvgTransform;
   text: string;
-  attrs: any;
-  transform: SvgTransform;
 
   location: XY;
   fontSize: number;
@@ -139,6 +153,7 @@ class SvgText {
   textSpans: SvgTextSpan[];
 
   testLocation?: XY;
+  layout?: LayoutRectangle;   // will be filled out asynchronously
 
 
   /**
@@ -149,16 +164,12 @@ class SvgText {
    */
   constructor(svg: {[key: string]: any}, transform: SvgTransform) {
 
-    this.svg = svg;
-    this.transform = transform;
+    //this.svg = svg;
+    //this.transform = transform;
+    //this.attrs = svg.attrs;
 
     this.text = this.extractText(svg);
-    this.attrs = svg.attrs;
     this.location = transform.apply(0, 0);
-
-    // TODO Remove these
-    this.fontSize = parseFloat(this.attrs.fontSize || "" + DEFAULT_FONT_SIZE);
-    this.color = this.attrs.fill || "black";
 
 
     // Extract the individual text spans
@@ -211,7 +222,14 @@ class SvgText {
       }
     };
 
-    fn(this.svg, null, this.attrs);
+    fn(svg, null, svg.attrs);
+
+
+    // Base these on text spans
+
+    const firstSpan = this.textSpans.length > 0 ? this.textSpans[0] : undefined;
+    this.fontSize = firstSpan ? firstSpan.fontSize : DEFAULT_FONT_SIZE;
+    this.color = firstSpan ? firstSpan.color : "black";
   }
 
 
@@ -239,6 +257,54 @@ class SvgText {
 
 
   /**
+   * Clone.
+   *
+   * @return [SvgText] the clone.
+   */
+  clone(): SvgText {
+    let r = Object.create(this);
+    r.location = { x: this.location.x, y: this.location.y };
+    r.textSpans = this.textSpans.slice(0);
+    return r;
+  }
+
+
+  /**
+   * Merge with another component.
+   *
+   * @param [SvgText] other the other component.
+   */
+  merge(other: SvgText) {
+
+    // TODO: This requires that "this" comes before "other." Fix that.
+
+    this.text += other.text;  // TODO Do we need space?
+
+    let locationTransformForOther = SvgTransform.fromTranslate(
+      other.location.x - this.location.x,
+      other.location.y - this.location.y
+    );
+
+    other.textSpans.forEach(t => {
+      var x = t.clone();
+      x.transform = x.transform.then(locationTransformForOther);
+      x.origin = locationTransformForOther.apply(x.origin);
+      this.textSpans.push(x);
+    });
+
+    if (!!this.layout && !!other.layout) {
+      var thisX2 = this.layout.x + this.layout.width;
+      var thisY2 = this.layout.y + this.layout.height;
+      var otherX2 = other.layout.x + other.layout.width;
+      var otherY2 = other.layout.y + other.layout.height;
+
+      if (otherX2 > thisX2) this.layout.width  += otherX2 - thisX2;
+      if (otherY2 > thisY2) this.layout.height += otherY2 - thisY2;
+    }
+  }
+
+
+  /**
    * Render using React Native (not SVG).
    *
    * @param [any] key the key.
@@ -256,28 +322,13 @@ class SvgText {
       </View>
     );
   }
-
-
-  /**
-   * Create a component for measurement.
-   *
-   * @param [any] key the key.
-   * @param [number] scale the scale.
-   * @return [React.Component] the rendered component.
-   */
-  renderMeasurementComponent(key?: any, scale: number = 1) {
-    return (
-      <MeasureComponents key={key} onMeasure={l => l/*this.handleMeasure(l)*/}>
-        {this.textSpans.map((s, i) => s.renderNative(i, scale, true))}
-      </MeasureComponents>
-    );
-  }
 }
 
 
 type SvgTextComponentProps = {
   text: SvgText;
   scale?: number;
+  onMeasure?: (layout: LayoutRectangle) => void;
 }
 
 
@@ -310,16 +361,31 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
    * @param [LayoutRectangle[]] layouts the layouts with dimensions filled in.
    */
   handleMeasure(layouts: LayoutRectangle[]) {
-    var overall: LayoutRectangle = { x: 0, y: 0, width: 0, height: 0 };
+    var overall: LayoutRectangle = {
+      x: this.props.text.location.x,
+      y: this.props.text.location.y,
+      width: 0,
+      height: 0
+    };
     for (var i = 0; i < layouts.length; i++) {
-      var p = this.props.text.textSpans[i].location();
+      var p = this.props.text.textSpans[i].location;
       overall.width = Math.max(overall.width, layouts[i].width + p.x);
       overall.height = Math.max(overall.height, layouts[i].height + p.y);
+      this.props.text.textSpans[i].layout = {
+        x: p.x,
+        y: p.y,
+        width: layouts[i].width,
+        height: layouts[i].height,
+      }
     }
+    this.props.text.layout = overall;
     this.setState({
       spanLayouts: layouts,
       overallLayout: overall,
     });
+    if (this.props.onMeasure) {
+      this.props.onMeasure(overall);
+    }
   }
 
 
@@ -356,7 +422,7 @@ type BmcDiagramProps = {
 
 type BmcDiagramState = {
   layout?: LayoutRectangle;
-  testLayouts?: LayoutRectangle[];
+  computedTestLayouts?: boolean;
   correctTextLocation: boolean[];
 }
 
@@ -417,15 +483,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       correctTextLocation[i] = !this.props.testMode;
     }
 
-    const collator = new Intl.Collator(undefined, {
-      numeric: true,
-      sensitivity: 'base'
-    });
-    this.texts.sort((a, b) => {
-      if (a.color !== b.color) return a.color < b.color ? -1 : 1;
-      return collator.compare(a.text, b.text);
-    });
-
 
     // Set the initial state
 
@@ -438,30 +495,131 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
   /**
    * Compute the test layouts
-   *
-   * @param [LayoutRectangle[]] layouts the layouts with dimensions filled in.
    */
-  doTestLayout(layouts: LayoutRectangle[]) {
-    if (this.props.testMode && this.svgViewBox) {
-      let tx = this.svgViewBox.x + this.svgViewBox.width;
-      let ty = this.svgViewBox.y;
-      let widest = 0;
-      let paddingX = 15;
-      let paddingY = 5;
-      this.texts.forEach((t, i) => {
-        t.testLocation = { x: tx, y: ty };
-        ty += layouts[i].height + paddingY;
-        if (layouts[i].width > widest) widest = layouts[i].width;
-        if (this.svgViewBox &&
-          ty + layouts[i].height > this.svgViewBox.y + this.svgViewBox.height) {
-          ty = this.svgViewBox.y;
-          tx += paddingX + widest;
-          widest = 0;
+  doTestLayout() {
+    if (!this.props.testMode || !this.svgViewBox) return;
+
+
+    // Merge relevant components
+
+    let deleted = Array(this.texts.length).fill(false);
+    for (var done = false; !done; ) {
+      done = true;
+
+      for (var i = 0; i < this.texts.length; i++) {
+        if (deleted[i]) continue;
+        for (var j = 0; j < this.texts.length; j++) {
+          if (i === j) continue;
+          if (deleted[j]) continue;
+
+          let a = this.texts[i];
+          let b = this.texts[j];
+
+          if (!a.layout || !b.layout) continue;
+          if (a.fontSize !== b.fontSize) continue;
+          if (a.color !== b.color) continue;
+
+
+          // On the same line
+
+          if (Math.abs(a.layout.y - b.layout.y) < 1 && a.layout.x < b.layout.x){
+            if (Math.abs(a.layout.x + a.layout.width - b.layout.x) <= 2) {
+              a.merge(b);
+              deleted[j] = true;
+              done = false;
+            }
+          }
+
+
+          // On top of each other
+
+          if (Math.abs(a.layout.y + a.layout.height - b.layout.y) < 2) {
+
+            // Left-justified
+            if (Math.abs(a.layout.x - b.layout.x) <= 2) {
+              a.merge(b);
+              deleted[j] = true;
+              done = false;
+            }
+
+            // Center-justified
+            if (Math.abs(a.layout.x + a.layout.width / 2
+                - b.layout.x - b.layout.width / 2) <= 4) {
+              a.merge(b);
+              deleted[j] = true;
+              done = false;
+            }
+
+            // Right-justified
+            if (Math.abs(a.layout.x + a.layout.width
+                - b.layout.x - b.layout.width) <= 2) {
+              a.merge(b);
+              deleted[j] = true;
+              done = false;
+            }
+          }
         }
-      });
-      this.setState({
-        testLayouts: layouts,
-      });
+      }
+    }
+
+    this.texts = this.texts.filter((v, i) => !deleted[i]);
+
+
+    // Sort the components
+
+    const collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    });
+    this.texts.sort((a, b) => {
+      //if (a.fontSize !== b.fontSize) return a.fontSize > b.fontSize ? -1 : 1;
+      if (a.color !== b.color) return a.color < b.color ? -1 : 1;
+      return collator.compare(a.text, b.text);
+    });
+
+
+    // Lay out the components
+
+    let tx = this.svgViewBox.x + this.svgViewBox.width;
+    let ty = this.svgViewBox.y;
+    let widest = 0;
+    let paddingX = 15;
+    let paddingY = 5;
+
+    this.texts.forEach(t => {
+      if (t.layout === undefined) return;
+
+      t.testLocation = { x: tx, y: ty };
+      ty += t.layout.height + paddingY;
+      if (t.layout.width > widest) widest = t.layout.width;
+      if (this.svgViewBox &&
+        ty + t.layout.height > this.svgViewBox.y + this.svgViewBox.height) {
+        ty = this.svgViewBox.y;
+        tx += paddingX + widest;
+        widest = 0;
+      }
+    });
+
+
+    // Update the state
+
+    this.setState({
+      computedTestLayouts: true,
+    });
+  }
+
+  /**
+   * Receive the measurement of a text component
+   *
+   * @param [SvgText] text the corresponding text source.
+   * @param [LayoutRectangle layout the layout with dimensions filled in.
+   */
+  handleSvgTextComponentLayout(text: SvgText, layout: LayoutRectangle) {
+    if (this.props.testMode && this.svgViewBox) {
+      if (this.texts.map(t => !!t.layout).reduce((t, c) => t && c, true)) {
+        // All layouts are now filled in
+        this.doTestLayout();
+      }
     }
   }
 
@@ -680,21 +838,30 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               color: t.color,
               fontSize: fontSize,
             }}>
-            {this.state.testLayouts && <SvgTextComponent
+            {this.state.computedTestLayouts && <SvgTextComponent
               text={t}
               scale={scale}
               />}
           </Draggable>);
         })}
-        {this.props.testMode && !this.state.testLayouts &&
-          <MeasureComponents onMeasure={layouts => this.doTestLayout(layouts)}>
+        {this.props.testMode && !this.state.computedTestLayouts &&
+          <View style={{
+            width: 2000,
+            height: 0,
+            overflow: 'hidden',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+          }}>
             {this.props.testMode && this.texts.map((t, index) => {
               return <SvgTextComponent
+                key={index}
                 text={t}
                 scale={scale}
+                onMeasure={layout => this.handleSvgTextComponentLayout(t, layout)}
                 />;
             })}
-          </MeasureComponents>}
+          </View>}
       </View>
     );
   }
