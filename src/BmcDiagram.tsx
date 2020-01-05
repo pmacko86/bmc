@@ -111,16 +111,18 @@ class SvgTextSpan {
    * @param [any] key the key.
    * @param [number] scale the scale.
    * @param [boolean] ignoreLocation whether to ignore location.
+   * @param [boolean] asHint whether to render this as a hint.
    * @return [React.Component] the rendered component.
    */
-  renderNative(key: any, scale: number = 1, ignoreLocation: boolean = false) {
+  renderNative(key: any, scale: number = 1,
+    ignoreLocation: boolean = false, asHint: boolean = false) {
     return (
       <Text
         key={key}
         selectable={false}
         style={[
           {
-            color: this.color,
+            color: !asHint ? this.color : "transparent",
             fontSize: scale * this.fontSizeScaled,
             letterSpacing: -1,
           },
@@ -129,6 +131,11 @@ class SvgTextSpan {
             left: scale * this.origin.x,
             top: scale * this.origin.y,
           } : {},
+          !asHint ? {} : {
+            textShadowColor: this.color,
+            textShadowOffset: { width: 0, height: 0 },
+            textShadowRadius: scale * this.fontSizeScaled * 2 / 3,
+          },
         ]}
         >{this.text.replace(/ /g, "\u00a0" /* &nbsp; */)}</Text>
     );
@@ -327,6 +334,7 @@ class SvgText {
 
 type SvgTextComponentProps = {
   text: SvgText;
+  asHint?: boolean;
   scale?: number;
   onMeasure?: (layout: LayoutRectangle) => void;
 }
@@ -396,15 +404,18 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
     const scale = this.props.scale === undefined ? 1 : this.props.scale;
     return (
       <View
-        style={{
-          position: "relative",
-          width: this.state.overallLayout
-            ? this.state.overallLayout.width * scale + 1 : undefined,
-          height: this.state.overallLayout
-            ? this.state.overallLayout.height * scale : undefined,
-        }}>
+        style={[
+          {
+            position: "relative",
+            width: this.state.overallLayout
+              ? this.state.overallLayout.width * scale + 1 : undefined,
+            height: this.state.overallLayout
+              ? this.state.overallLayout.height * scale : undefined,
+          }
+        ]}>
         {this.state.overallLayout
-          && (this.props.text.textSpans.map((s, i) => s.renderNative(i, scale)))}
+          && (this.props.text.textSpans.map((s, i) =>
+            s.renderNative(i, scale, false, this.props.asHint)))}
         <MeasureComponents key={-1} onMeasure={l => this.handleMeasure(l)}>
           {this.props.text.textSpans.map((s, i) => s.renderNative(i, 1, true))}
         </MeasureComponents>
@@ -417,6 +428,7 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
 type BmcDiagramProps = {
   book: string;
   testMode?: boolean;
+  testHints?: boolean;
 }
 
 
@@ -527,6 +539,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               a.merge(b);
               deleted[j] = true;
               done = false;
+              continue;
             }
           }
 
@@ -535,11 +548,18 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
           if (Math.abs(a.layout.y + a.layout.height - b.layout.y) < 2) {
 
+            // Hack: Do not merge red
+            if (a.color === "red" || a.color.match(/^rgb\(2..,.*/)
+              || a.color.match(/^#[c-fC-F].*/)) {
+              continue;
+            }
+
             // Left-justified
             if (Math.abs(a.layout.x - b.layout.x) <= 2) {
               a.merge(b);
               deleted[j] = true;
               done = false;
+              continue;
             }
 
             // Center-justified
@@ -548,6 +568,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               a.merge(b);
               deleted[j] = true;
               done = false;
+              continue;
             }
 
             // Right-justified
@@ -556,6 +577,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               a.merge(b);
               deleted[j] = true;
               done = false;
+              continue;
             }
           }
         }
@@ -806,6 +828,26 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Svg>
       </View>
+      {this.props.testMode && this.props.testHints
+          && this.texts.map((t, index) => {
+        if (this.state.correctTextLocation[index]) return;
+        let location = layoutTransform.apply(t.location);
+        return (
+          <Draggable
+            key={index}
+            disabled={true}
+            style={{
+              position: "absolute",
+              left: location.x,
+              top: location.y,
+            }}>
+            {this.state.computedTestLayouts && <SvgTextComponent
+              text={t}
+              scale={scale}
+              asHint={true}
+              />}
+          </Draggable>);
+        })}
       {this.props.testMode && this.texts.map((t, index) => {
         let atTestLocation = !this.state.correctTextLocation[index];
         let fontSize = t.fontSize * scale;
@@ -835,8 +877,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               position: "absolute",
               left: location.x,
               top: location.y,
-              color: t.color,
-              fontSize: fontSize,
             }}>
             {this.state.computedTestLayouts && <SvgTextComponent
               text={t}
