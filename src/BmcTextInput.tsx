@@ -167,7 +167,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
               paddingTop: !element.addSpace ? 0 : (i === 0 ? 6 : 12),
             }}
             >
-            <Text style={{ flexShrink: 0, width: 45 }}></Text>
+            <Text style={{ flexShrink: 0, width: 55 }}></Text>
             {item.heading && item.heading !== ""
               ? this.createInput(i, item.heading, true)
               : null}
