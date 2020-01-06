@@ -47,8 +47,11 @@ extends React.Component<BookActionScreenProps, BookActionScreenState> {
           <TouchableHighlight onPress={e => this.chooseAction("Study")}>
             <Text style={STYLES.actionListItem}>Study</Text>
           </TouchableHighlight>
+          <TouchableHighlight onPress={e => this.chooseAction("Diagram")}>
+            <Text style={STYLES.actionListItem}>Test the Diagram [experimental]</Text>
+          </TouchableHighlight>
           <TouchableHighlight onPress={e => this.chooseAction("Test")}>
-            <Text style={STYLES.actionListItem}>Test</Text>
+            <Text style={STYLES.actionListItem}>Test the Chapter Titles</Text>
           </TouchableHighlight>
         </ScrollView>
       </SafeAreaView>

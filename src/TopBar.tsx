@@ -54,11 +54,15 @@ extends React.Component<TopBarProps, TopBarState> {
         {this.props.hideBack ? null :
           <TouchableHighlight onPress={this.handleBack}>
             <View style={STYLES.headerBackView}>
-              <Text style={STYLES.headerBackText}>&lt; Back</Text>
+              <Text
+                style={STYLES.headerBackText}
+                selectable={false}
+                >&lt; Back</Text>
             </View>
           </TouchableHighlight>}
         <Text
           style={STYLES.headerTitle}
+          selectable={false}
           >{this.props.text}</Text>
       </View>
     );

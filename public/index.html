@@ -11,9 +11,17 @@
         [contenteditable="true"]:focus {
             outline: none;
         }
+        html, body {
+          margin: 0;
+          height: 100%;
+          overflow: hidden;
+        }
+        #root {
+          height: 100%;
+        }
       </style>
    </head>
    <body>
-      <div id="root"></div>
+      <div id="root" style="display: flex; flex: 1 1 0%;"></div>
    </body>
 </html>

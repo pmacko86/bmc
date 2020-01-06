@@ -49,6 +49,7 @@ class SvgTextSpan {
   color: string;
   origin: XY;
   scale: number;
+  fontFamily: string;
   fontSize: number;
   fontSizeScaled: number;
 
@@ -72,6 +73,7 @@ class SvgTextSpan {
     // Derrived attributes
 
     this.color = this.attrs.fill || "black";
+    this.fontFamily = this.attrs.fontFamily || "Helvetica";
     this.fontSize = this.attrs.fontSize
       ? parseFloat(this.attrs.fontSize) : DEFAULT_FONT_SIZE;
     const vectorOne = this.transform.apply(1, 0);
@@ -123,13 +125,14 @@ class SvgTextSpan {
         style={[
           {
             color: !asHint ? this.color : "transparent",
+            fontFamily: this.fontFamily,
             fontSize: scale * this.fontSizeScaled,
-            letterSpacing: -1,
+            //letterSpacing: -1,
           },
           !ignoreLocation ? {
             position: "absolute",
             left: scale * this.origin.x,
-            top: scale * this.origin.y,
+            top: scale * this.origin.y + 2,   // Everything seems shifted...
           } : {},
           !asHint ? {} : {
             textShadowColor: this.color,
@@ -285,7 +288,30 @@ class SvgText {
 
     // TODO: This requires that "this" comes before "other." Fix that.
 
-    this.text += other.text;  // TODO Do we need space?
+    let sameLine = Math.abs(this.location.y - other.location.y) <= 2;
+
+    if (!sameLine) this.text += " ";
+    this.text += other.text;
+
+    var locationTransformForThis: SvgTransform;
+    if (other.location.x >= this.location.x) {
+      locationTransformForThis = new SvgTransform();
+    }
+    else {
+      locationTransformForThis = SvgTransform.fromTranslate(
+        this.location.x - other.location.x,
+        0
+      );
+      this.textSpans.forEach(t => {
+        t.transform = t.transform.then(locationTransformForThis);
+        t.origin = locationTransformForThis.apply(t.origin);
+        if (t.layout) {
+          t.layout.x = t.location.x;
+          t.layout.y = t.location.y;
+        }
+      });
+      this.location.x = other.location.x;
+    }
 
     let locationTransformForOther = SvgTransform.fromTranslate(
       other.location.x - this.location.x,
@@ -296,6 +322,10 @@ class SvgText {
       var x = t.clone();
       x.transform = x.transform.then(locationTransformForOther);
       x.origin = locationTransformForOther.apply(x.origin);
+      if (x.layout) {
+        x.layout.x = x.location.x;
+        x.layout.y = x.location.y;
+      }
       this.textSpans.push(x);
     });
 
@@ -434,8 +464,10 @@ type BmcDiagramProps = {
 
 type BmcDiagramState = {
   layout?: LayoutRectangle;
-  computedTestLayouts?: boolean;
+  containerLayout?: LayoutRectangle;
   correctTextLocation: boolean[];
+  hasTestLayouts?: boolean;
+  totalWidth: number;
 }
 
 
@@ -501,6 +533,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     this.state = {
       layout: undefined,
       correctTextLocation: correctTextLocation,
+      totalWidth: this.svgViewBox ? this.svgViewBox.width : 100,
     };
   }
 
@@ -622,11 +655,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       }
     });
 
+    let totalWidth = tx + widest + paddingY;
+
 
     // Update the state
 
     this.setState({
-      computedTestLayouts: true,
+      hasTestLayouts: true,
+      totalWidth: totalWidth,
     });
   }
 
@@ -777,11 +813,21 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     // Compute the scale
 
-    let svgWidth = windowDimensions.width;
-    if (svgWidth > this.svgViewBox.width) svgWidth = this.svgViewBox.width;
+    let totalWidth = windowDimensions.width;
+    if (totalWidth > this.state.totalWidth) totalWidth = this.state.totalWidth;
+    let scale = 1.0 * totalWidth / this.state.totalWidth;
+
+    let svgWidth = scale * this.svgViewBox.width;
     let svgHeight = 1.0 * svgWidth
       * this.svgViewBox.height / this.svgViewBox.width;
-    let scale = 1.0 * svgWidth / this.svgViewBox.width;
+
+    if (this.state.containerLayout) {
+      if (svgHeight > this.state.containerLayout.height) {
+        scale *= this.state.containerLayout.height / svgHeight;
+        svgHeight = this.state.containerLayout.height;
+        svgWidth = scale * this.svgViewBox.width;
+      }
+    }
 
 
     // Compute the layout transform
@@ -802,23 +848,16 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     // Render
 
     return (
-      <View>
+      <View
+        style={{ flexGrow: 1, flexShrink: 1 }}
+        onLayout={e => {
+          this.setState({ containerLayout: e.nativeEvent.layout });
+        }}>
         <View
           ref={r => { this.svgView = r; }}
           onLayout={e => {
             // Get the absolute position, so that we can then
             // position floatable components relative to it.
-            /*if (this.svgView) {
-              this.svgView.measure((x, y, width, height, px, py) => {
-                console.log([x, y, px, py])
-                this.setState({ layout: {
-                  x: px,
-                  y: py,
-                  width: width,
-                  height: height,
-                }});
-              });
-            }*/
             this.setState({ layout: e.nativeEvent.layout });
           }}>
           <Svg
@@ -827,64 +866,63 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             viewBox={this.svg.attrs.viewBox}>
             {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Svg>
-      </View>
-      {this.props.testMode && this.props.testHints
-          && this.texts.map((t, index) => {
-        if (this.state.correctTextLocation[index]) return;
-        let location = layoutTransform.apply(t.location);
-        return (
-          <Draggable
-            key={index}
-            disabled={true}
-            style={{
-              position: "absolute",
-              left: location.x,
-              top: location.y,
-            }}>
-            {this.state.computedTestLayouts && <SvgTextComponent
-              text={t}
-              scale={scale}
-              asHint={true}
-              />}
-          </Draggable>);
-        })}
-      {this.props.testMode && this.texts.map((t, index) => {
-        let atTestLocation = !this.state.correctTextLocation[index];
-        let fontSize = t.fontSize * scale;
-        let location = layoutTransform.apply(
-          atTestLocation && t.testLocation ? t.testLocation : t.location);
-        let dropLocation = undefined;
-        if (atTestLocation && t.testLocation) {
-          dropLocation = layoutTransform.apply(t.location);
-        }
-        return (
-          <Draggable
-            key={index}
-            disabled={!atTestLocation}
-            dropLocation={dropLocation && {
-              x: dropLocation.x-50,
-              y: dropLocation.y-50,
-              width: 100,
-              height: 100
-            }}
-            dropLocationRelative={this.svgView}
-            onDropToLocation={() => {
-              let v = this.state.correctTextLocation.slice(0);
-              v[index] = true;
-              this.setState({ correctTextLocation: v });
-            }}
-            style={{
-              position: "absolute",
-              left: location.x,
-              top: location.y,
-            }}>
-            {this.state.computedTestLayouts && <SvgTextComponent
-              text={t}
-              scale={scale}
-              />}
-          </Draggable>);
-        })}
-        {this.props.testMode && !this.state.computedTestLayouts &&
+        </View>
+        {this.props.testMode && this.props.testHints
+            && this.texts.map((t, index) => {
+          if (this.state.correctTextLocation[index]) return null;
+          let location = layoutTransform.apply(t.location);
+          return (
+            <Draggable
+              key={index}
+              disabled={true}
+              style={{
+                position: "absolute",
+                left: location.x,
+                top: location.y,
+              }}>
+              {this.state.hasTestLayouts && <SvgTextComponent
+                text={t}
+                scale={scale}
+                asHint={true}
+                />}
+            </Draggable>);
+          })}
+        {this.props.testMode && this.texts.map((t, index) => {
+          let atTestLocation = !this.state.correctTextLocation[index];
+          let location = layoutTransform.apply(
+            atTestLocation && t.testLocation ? t.testLocation : t.location);
+          let dropLocation = undefined;
+          if (atTestLocation && t.testLocation) {
+            dropLocation = layoutTransform.apply(t.location);
+          }
+          return (
+            <Draggable
+              key={index}
+              disabled={!atTestLocation}
+              dropLocation={dropLocation && {
+                x: dropLocation.x-50,
+                y: dropLocation.y-50,
+                width: 100,
+                height: 100
+              }}
+              dropLocationRelative={this.svgView}
+              onDropToLocation={() => {
+                let v = this.state.correctTextLocation.slice(0);
+                v[index] = true;
+                this.setState({ correctTextLocation: v });
+              }}
+              style={{
+                position: "absolute",
+                left: location.x,
+                top: location.y,
+              }}>
+              {this.state.hasTestLayouts && <SvgTextComponent
+                text={t}
+                scale={scale}
+                />}
+            </Draggable>);
+          })}
+        {this.props.testMode && !this.state.hasTestLayouts &&
           <View style={{
             width: 2000,
             height: 0,

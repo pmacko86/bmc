@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  KeyboardAvoidingView,
   SafeAreaView,
   ScrollView,
   Text,
@@ -8,6 +7,7 @@ import {
 import { NavigationStackProp } from 'react-navigation-stack';
 import BmcTextInput from './BmcTextInput';
 import InstructionsBar from './InstructionsBar';
+import MyKeyboardAvoidingView from './MyKeyboardAvoidingView';
 import TopBar from './TopBar';
 import * as BMC from './BmcData';
 
@@ -47,7 +47,7 @@ extends React.Component<TestScreenProps, TestScreenState> {
           />
         <InstructionsBar
           text={"Please type just the first letter, but spell out acronyms:"} />
-        <KeyboardAvoidingView behavior={"padding"}>
+        <MyKeyboardAvoidingView>
           <ScrollView
             style={{
               flexGrow: 1,
@@ -55,14 +55,15 @@ extends React.Component<TestScreenProps, TestScreenState> {
             keyboardShouldPersistTaps={"handled"}
             >
             <BmcTextInput
-              allowBackspace={true}
+              allowBackspace={false}
+              autoFocus={true}
               displayAllItems={false}
               displayAllTextInItem={false}
               optionalWords={["a", "an", "the"]}
               items={book.items}
               />
           </ScrollView>
-        </KeyboardAvoidingView>
+        </MyKeyboardAvoidingView>
       </SafeAreaView>
     );
   }

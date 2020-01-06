@@ -1,14 +1,11 @@
 import React from 'react';
 import {
   SafeAreaView,
-  ScrollView,
   Text,
 } from 'react-native';
 import { NavigationStackProp } from 'react-navigation-stack';
 import BmcDiagram from './BmcDiagram';
-import BmcTextInput from './BmcTextInput';
 import InstructionsBar from './InstructionsBar';
-import MyKeyboardAvoidingView from './MyKeyboardAvoidingView';
 import TopBar from './TopBar';
 import * as BMC from './BmcData';
 
@@ -47,25 +44,8 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
           onBackIfWeb={() => this.props.navigation.navigate("BookAction", { book: bookName })}
           />
         <InstructionsBar
-          text={"Please type just the first letter, but spell out acronyms:"} />
-        <MyKeyboardAvoidingView>
-          <ScrollView
-            style={{
-              flexGrow: 1,
-            }}
-            keyboardShouldPersistTaps={"handled"}
-            >
-            <BmcDiagram book={bookName} />
-            <BmcTextInput
-              allowBackspace={true}
-              displayAllItems={true}
-              displayAllTextInItem={true}
-              everythingEditable={true}
-              optionalWords={["a", "an", "the"]}
-              items={book.items}
-              />
-          </ScrollView>
-        </MyKeyboardAvoidingView>
+          text={"Drag labels to the diagram:"} />
+        <BmcDiagram book={bookName} testMode={true} testHints={true} />
       </SafeAreaView>
     );
   }

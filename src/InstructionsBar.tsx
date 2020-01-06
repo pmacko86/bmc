@@ -19,6 +19,7 @@ extends React.Component<InstructionsBarProps, InstructionsBarState> {
     return (
       <Text
         style={STYLES.instructions}
+        selectable={false}
         >{this.props.text}</Text>
     );
   }

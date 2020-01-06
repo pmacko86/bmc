@@ -1,5 +1,6 @@
 import React from 'react';
 import BookActionScreen from './BookActionScreen';
+import DiagramScreen from './DiagramScreen';
 import HomeScreen from './HomeScreen';
 import StudyScreen from './StudyScreen';
 import TestScreen from './TestScreen';
@@ -15,6 +16,7 @@ import { createAppContainer } from 'react-navigation';
 
 const routes: {} = {
   Home: {screen: HomeScreen},
+  Diagram: {screen: DiagramScreen},
   BookAction: {screen: BookActionScreen},
   Study: {screen: StudyScreen},
   Test: {screen: TestScreen},

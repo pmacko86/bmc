@@ -1,4 +1,5 @@
 import BookActionScreen from './BookActionScreen';
+import DiagramScreen from './DiagramScreen';
 import HomeScreen from './HomeScreen';
 import StudyScreen from './StudyScreen';
 import TestScreen from './TestScreen';
@@ -14,6 +15,7 @@ import { createBrowserApp } from '@react-navigation/web';
 const routes: {} = {
   Home: {screen: HomeScreen},
   BookAction: {screen: BookActionScreen},
+  Diagram: {screen: DiagramScreen},
   Study: {screen: StudyScreen},
   Test: {screen: TestScreen},
 }
