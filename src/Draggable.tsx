@@ -138,6 +138,17 @@ extends React.Component<DraggableProps, DraggableState> {
 
 
   /**
+   * Perform a spring animation
+   */
+  spring(conf: Animated.SpringAnimationConfig,
+    onCompletion?: Animated.EndCallback) {
+    if (this.state.pan) {
+      Animated.spring(this.state.pan, conf).start(onCompletion);
+    }
+  }
+
+
+  /**
    * Render the component.
    *
    * @return [Animated.View] the rendered component.

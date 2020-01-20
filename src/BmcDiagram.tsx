@@ -82,6 +82,18 @@ class SvgTextSpan {
       + (vectorOne.y - this.origin.y)**2);
     this.fontSizeScaled = this.fontSize * this.scale;
     this.origin.y -= this.fontSizeScaled;
+
+
+    // If we have textLength, take advantage of it.
+
+    if (this.attrs.textLength) {
+      this.layout = {
+        x: this.origin.x,
+        y: this.origin.y,
+        width: this.attrs.textLength,
+        height: this.fontSize + 2,
+      };
+    }
   }
 
 
@@ -164,6 +176,7 @@ class SvgText {
 
   testLocation?: XY;
   layout?: LayoutRectangle;   // will be filled out asynchronously
+  draggable?: Draggable | null;
 
 
   /**
@@ -227,6 +240,16 @@ class SvgText {
       // Handle the actual text
 
       if (svg.text && textAttrs) {
+
+        // Fix types
+
+        if (textAttrs.textLength) {
+          textAttrs.textLength = parseFloat(textAttrs.textLength);
+        }
+
+
+        // Add
+        
         this.textSpans.push(new SvgTextSpan(svg.text, textAttrs,
           transform.then(locationTransform)));
       }
@@ -240,6 +263,25 @@ class SvgText {
     const firstSpan = this.textSpans.length > 0 ? this.textSpans[0] : undefined;
     this.fontSize = firstSpan ? firstSpan.fontSize : DEFAULT_FONT_SIZE;
     this.color = firstSpan ? firstSpan.color : "black";
+
+
+    // If we already know the layouts of all spans, take advantage of it.
+
+    if (this.textSpans.map(t => !!t.layout).reduce((t, c) => t && c, true)) {
+      this.layout = {
+        x: this.location.x,
+        y: this.location.y,
+        width: 0,
+        height: 0,
+      }
+      this.textSpans.forEach(t => {
+        if (!t.layout || !this.layout) return;
+        this.layout.width =
+          Math.max(this.layout.width, t.layout.x + t.layout.width);
+        this.layout.height =
+          Math.max(this.layout.height, t.layout.y + t.layout.height);
+      });
+    }
   }
 
 
@@ -389,7 +431,22 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
    */
   constructor(props: SvgTextComponentProps) {
     super(props);
-    this.state = {};
+
+    let spanLayouts: (LayoutRectangle | undefined)[] | undefined
+      = this.props.text.textSpans.map(t => t.layout);
+    if (!spanLayouts.map(l => !!l).reduce((t, c) => t && c, true)) {
+      spanLayouts = undefined;
+    }
+
+    this.state = {
+      spanLayouts: spanLayouts as LayoutRectangle[] | undefined,
+      overallLayout: this.props.text.layout,
+    };
+
+    if (this.state.spanLayouts && this.state.overallLayout
+      && this.props.onMeasure) {
+      this.props.onMeasure(this.state.overallLayout);
+    }
   }
 
 
@@ -446,9 +503,10 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
         {this.state.overallLayout
           && (this.props.text.textSpans.map((s, i) =>
             s.renderNative(i, scale, false, this.props.asHint)))}
-        <MeasureComponents key={-1} onMeasure={l => this.handleMeasure(l)}>
-          {this.props.text.textSpans.map((s, i) => s.renderNative(i, 1, true))}
-        </MeasureComponents>
+        {!this.state.spanLayouts && !this.state.overallLayout &&
+          <MeasureComponents key={-1} onMeasure={l => this.handleMeasure(l)}>
+            {this.props.text.textSpans.map((s, i) => s.renderNative(i, 1, true))}
+          </MeasureComponents>}
       </View>
     );
   }
@@ -545,15 +603,63 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     if (!this.props.testMode || !this.svgViewBox) return;
 
 
-    // Merge relevant components
+    // Remove duplicate elements and other elements worth removing
 
     let deleted = Array(this.texts.length).fill(false);
-    for (var done = false; !done; ) {
+
+    var i, j;
+    var done = false;
+    while (!done) {
       done = true;
 
-      for (var i = 0; i < this.texts.length; i++) {
+      for (i = 0; i < this.texts.length; i++) {
         if (deleted[i]) continue;
-        for (var j = 0; j < this.texts.length; j++) {
+        let a = this.texts[i];
+
+
+        // Too small
+
+        if (a.fontSize < 3) {
+          deleted[i] = true;
+          continue;
+        }
+
+
+        // Check for duplicates
+
+        for (j = 0; j < this.texts.length; j++) {
+          if (i === j) continue;
+          if (deleted[j]) continue;
+
+          let b = this.texts[j];
+
+          if (!a.layout || !b.layout) continue;
+          if (a.fontSize !== b.fontSize) continue;
+          if (a.color !== b.color) continue;
+
+
+          // The same
+
+          if (a.text === b.text && Math.abs(a.layout.x - b.layout.x) < 1 &&
+            Math.abs(a.layout.y - b.layout.y) < 1) {
+            deleted[j] = true;
+            done = false;
+            continue;
+          }
+        }
+      }
+    }
+
+
+    // Merge relevant components
+
+    done = false;
+    while (!done) {
+      done = true;
+
+      for (i = 0; i < this.texts.length; i++) {
+        if (deleted[i]) continue;
+        for (j = 0; j < this.texts.length; j++) {
           if (i === j) continue;
           if (deleted[j]) continue;
 
@@ -579,7 +685,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
           // On top of each other
 
-          if (Math.abs(a.layout.y + a.layout.height - b.layout.y) < 2) {
+          if (Math.abs(a.layout.y + a.layout.height - b.layout.y) <= 2
+            || (a.layout.y < b.layout.y
+              && a.layout.y + a.layout.height > b.layout.y)) {
 
             // Hack: Do not merge red
             if (a.color === "red" || a.color.match(/^rgb\(2..,.*/)
@@ -891,25 +999,36 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           let atTestLocation = !this.state.correctTextLocation[index];
           let location = layoutTransform.apply(
             atTestLocation && t.testLocation ? t.testLocation : t.location);
-          let dropLocation = undefined;
+          let dropLocation: XY | undefined = undefined;
           if (atTestLocation && t.testLocation) {
             dropLocation = layoutTransform.apply(t.location);
           }
+          let dropRadius = 35;
           return (
             <Draggable
               key={index}
+              ref={d => t.draggable = d}
               disabled={!atTestLocation}
               dropLocation={dropLocation && {
-                x: dropLocation.x-50,
-                y: dropLocation.y-50,
-                width: 100,
-                height: 100
+                x: dropLocation.x-dropRadius,
+                y: dropLocation.y-dropRadius,
+                width: 2 * dropRadius,
+                height: 2 * dropRadius
               }}
               dropLocationRelative={this.svgView}
               onDropToLocation={() => {
                 let v = this.state.correctTextLocation.slice(0);
                 v[index] = true;
-                this.setState({ correctTextLocation: v });
+                if (t.draggable && dropLocation) {
+                  t.draggable.spring({
+                    toValue: {
+                      x: dropLocation.x - location.x,
+                      y: dropLocation.y - location.y,
+                    },
+                    speed: 100,
+                  },
+                  () => this.setState({ correctTextLocation: v }));
+                }
               }}
               style={{
                 position: "absolute",
