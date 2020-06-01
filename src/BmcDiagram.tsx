@@ -73,7 +73,7 @@ class SvgTextSpan {
 
   textLength?: number;
   measuredWidth?: number;
-  layout?: LayoutRectangle; // will be filled out asynchronously
+  layout?: LayoutRectangle;    // will be filled out asynchronously
 
 
   /**
@@ -107,6 +107,11 @@ class SvgTextSpan {
 
 
     // If we have textLength, take advantage of it.
+
+    // TODO Currently we don't do this, since we need to measure
+    //      the texts anyways so that we can get measuredWidth for
+    //      the purpose of adjusting letterSpacing. But we should be
+    //      totally taking advantage of this!
 
     /*if (this.attrs.textLength) {
       this.layout = {
@@ -203,8 +208,11 @@ class SvgText {
   textSpans: SvgTextSpan[];
 
   testLocation?: XY;
-  layout?: LayoutRectangle;   // will be filled out asynchronously
+  layout?: LayoutRectangle;      // will be filled out asynchronously
   draggable?: Draggable | null;
+
+  index: number;                 // will be filled out asynchronously
+  equivalents: SvgText[];        // will be filled out asynchronously
 
 
   /**
@@ -221,6 +229,8 @@ class SvgText {
 
     this.text = this.extractText(svg);
     this.location = transform.apply(0, 0);
+    this.index = -1;
+    this.equivalents = [];
 
 
     // Extract the individual text spans
@@ -779,6 +789,30 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     });
 
 
+    // Determine which components are equivalent
+
+    for (i = 0; i < this.texts.length; i++) {
+      for (j = i + 1; j < this.texts.length; j++) {
+        let a = this.texts[i];
+        let b = this.texts[j];
+
+        if (a.text !== b.text) continue;
+        if (a.fontSize !== b.fontSize) continue;
+        if (a.color !== b.color) continue;
+
+        a.equivalents.push(b);
+        b.equivalents.push(a);
+      }
+    }
+
+
+    // Assign indexes
+
+    for (i = 0; i < this.texts.length; i++) {
+      this.texts[i].index = i;
+    }
+
+
     // Lay out the components
 
     let tx = this.svgViewBox.x + this.svgViewBox.width;
@@ -1050,34 +1084,66 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             </Draggable>);
           })}
         {this.props.testMode && this.texts.map((t, index) => {
+          let dropRadius = 35;
           let atTestLocation = !this.state.correctTextLocation[index];
           let location = layoutTransform.apply(
             atTestLocation && t.testLocation ? t.testLocation : t.location);
-          let dropLocation: XY | undefined = undefined;
+
+          let dropLocations: { index: number, location: XY}[] = [];
           if (atTestLocation && t.testLocation) {
-            dropLocation = layoutTransform.apply(t.location);
+            dropLocations.push({
+              index: index,
+              location: layoutTransform.apply(t.location),
+            });
           }
-          let dropRadius = 35;
+
+          for (let i = 0; i < t.equivalents.length; i++) {
+            let e = t.equivalents[i];
+            if (!this.state.correctTextLocation[e.index] && e.testLocation) {
+              dropLocations.push({
+                index: e.index,
+                location: layoutTransform.apply(e.location),
+              });
+            }
+          }
+
           return (
             <Draggable
               key={index}
               ref={d => t.draggable = d}
               disabled={!atTestLocation}
-              dropLocation={dropLocation && {
-                x: dropLocation.x-dropRadius,
-                y: dropLocation.y-dropRadius,
-                width: 2 * dropRadius,
-                height: 2 * dropRadius
-              }}
+              dropLocation={dropLocations.map(l => {
+                return {
+                  x: l.location.x - dropRadius,
+                  y: l.location.y - dropRadius,
+                  width: 2 * dropRadius,
+                  height: 2 * dropRadius
+                };
+              })}
               dropLocationRelative={this.svgView}
-              onDropToLocation={() => {
+              onDropToLocation={(dropLocationIndex) => {
+                let dropLocation = dropLocations[dropLocationIndex];
+
+                // For equivalent components, swap them if the user dragged
+                // one to the drop area of the other
+                [this.texts[index], this.texts[dropLocation.index]]
+                  = [this.texts[dropLocation.index], this.texts[index]];
+                [this.texts[index].index,
+                 this.texts[dropLocation.index].index]
+                  = [this.texts[dropLocation.index].index,
+                     this.texts[index].index];
+                [this.texts[index].testLocation,
+                 this.texts[dropLocation.index].testLocation]
+                  = [this.texts[dropLocation.index].testLocation,
+                     this.texts[index].testLocation];
+
                 let v = this.state.correctTextLocation.slice(0);
                 v[index] = true;
-                if (t.draggable && dropLocation) {
+                if (t.draggable) {
                   t.draggable.spring({
                     toValue: {
-                      x: dropLocation.x - location.x,
-                      y: dropLocation.y - location.y,
+                      x: dropLocation.location.x - location.x,
+                      y: dropLocation.location.y - location.y,
                     },
                     speed: 100,
                   },

@@ -20,9 +20,9 @@ type XY = {
 
 type DraggableProps = {
   disabled?: boolean;
-  dropLocation?: LayoutRectangle;
+  dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationRelative?: View | Text | null;
-  onDropToLocation?: () => void;
+  onDropToLocation?: (index: number) => void;
   style: {};
 }
 
@@ -70,7 +70,9 @@ extends React.Component<DraggableProps, DraggableState> {
   onRelease(gestureX: number, gestureY: number,
     relativeX: number, relativeY: number) {
 
-    if (!this.props.dropLocation) {
+    if (!this.props.dropLocation
+      || (Array.isArray(this.props.dropLocation)
+        && this.props.dropLocation.length === 0)) {
       Animated.spring(this.state.pan, {
         toValue: { x: 0, y: 0 },
         friction: 10
@@ -80,18 +82,27 @@ extends React.Component<DraggableProps, DraggableState> {
 
     const gx = gestureX;
     const gy = gestureY;
-    const dlx = this.props.dropLocation.x + relativeX;
-    const dly = this.props.dropLocation.y + relativeY;
 
-    if (gx >= dlx && gx < dlx + this.props.dropLocation.width
-      && gy >= dly && gy < dly + this.props.dropLocation.height) {
-      if (this.props.onDropToLocation) this.props.onDropToLocation();
-    }
-    else {
-      Animated.spring(this.state.pan, {
-        toValue: { x: 0, y: 0 },
-        friction: 10
-      }).start();
+    let dropLocations = Array.isArray(this.props.dropLocation)
+      ? this.props.dropLocation : [this.props.dropLocation];
+
+    for (let i = 0; i < dropLocations.length; i++) {
+      const dlx = dropLocations[i].x + relativeX;
+      const dly = dropLocations[i].y + relativeY;
+
+      if (gx >= dlx && gx < dlx + dropLocations[i].width
+        && gy >= dly && gy < dly + dropLocations[i].height) {
+        if (this.props.onDropToLocation) {
+          this.props.onDropToLocation(i);
+        }
+      }
+      else {
+        Animated.spring(this.state.pan, {
+          toValue: { x: 0, y: 0 },
+          //friction: 10,
+          speed: 100,
+        }).start();
+      }
     }
   }
 
