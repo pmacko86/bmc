@@ -31,16 +31,18 @@ const DEFAULT_FONT_SIZE = 14;
  * The SVG text shift
  */
 const SVG_TEXT_VERTICAL_SHIFT = 3;
+const SVG_TEXT_HORIZONTAL_SHIFT = -1;
 
 /**
  * The extra text shift
  */
-const SVG_NATIVE_TEXT_VERTICAL_SHIFT = 3;
+const SVG_NATIVE_TEXT_VERTICAL_SHIFT = 4;
+const SVG_NATIVE_TEXT_HORIZONTAL_SHIFT = -1;
 
 /**
  * Whether to always use native rendering for text
  */
-const ALWAYS_RENDER_TEXT_NATIVE = false;
+const ALWAYS_RENDER_TEXT_NATIVE = true;
 
 
 /**
@@ -162,15 +164,15 @@ class SvgTextSpan {
             fontWeight: this.fontWeight === 500 ? "500" : "400", // XXX
             letterSpacing:
               this.measuredWidth && this.textLength && this.text.length > 1
-              ? (this.textLength - this.measuredWidth) * this.scale
+              ? (this.textLength - this.measuredWidth) * scale
                   / (this.text.length - 1)
               : 0,
           },
           !ignoreLocation ? {
             position: "absolute",
-            left: scale * this.origin.x,
+            left: scale * (this.origin.x + SVG_NATIVE_TEXT_HORIZONTAL_SHIFT),
             // Everything seems shifted...
-            top: scale * this.origin.y + SVG_NATIVE_TEXT_VERTICAL_SHIFT,
+            top: scale * (this.origin.y + SVG_NATIVE_TEXT_VERTICAL_SHIFT),
           } : {},
           !asHint ? {} : {
             textShadowColor: this.color,
@@ -933,6 +935,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
       if (svg.type === "TSpan" || svg.name === "tspan") {
         attrs = Object.assign({}, attrs);
+        if (attrs.x !== undefined) {
+          attrs.x = parseFloat(attrs.x) + SVG_TEXT_HORIZONTAL_SHIFT;
+        }
+        else {
+          attrs.x = SVG_TEXT_VERTICAL_SHIFT;
+        }
         if (attrs.y !== undefined) {
           attrs.y = parseFloat(attrs.y) + SVG_TEXT_VERTICAL_SHIFT;
         }
