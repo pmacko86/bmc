@@ -27,6 +27,21 @@ const DATA = require("./assets/diagrams.json");
  */
 const DEFAULT_FONT_SIZE = 14;
 
+/**
+ * The SVG text shift
+ */
+const SVG_TEXT_VERTICAL_SHIFT = 3;
+
+/**
+ * The extra text shift
+ */
+const SVG_NATIVE_TEXT_VERTICAL_SHIFT = 3;
+
+/**
+ * Whether to always use native rendering for text
+ */
+const ALWAYS_RENDER_TEXT_NATIVE = false;
+
 
 /**
  * Point coordinates.
@@ -52,7 +67,10 @@ class SvgTextSpan {
   fontFamily: string;
   fontSize: number;
   fontSizeScaled: number;
+  fontWeight: number;
 
+  textLength?: number;
+  measuredWidth?: number;
   layout?: LayoutRectangle; // will be filled out asynchronously
 
 
@@ -74,6 +92,7 @@ class SvgTextSpan {
 
     this.color = this.attrs.fill || "black";
     this.fontFamily = this.attrs.fontFamily || "Helvetica";
+    this.fontWeight = this.attrs.fontWeight || 400 /* normal */;
     this.fontSize = this.attrs.fontSize
       ? parseFloat(this.attrs.fontSize) : DEFAULT_FONT_SIZE;
     const vectorOne = this.transform.apply(1, 0);
@@ -82,18 +101,19 @@ class SvgTextSpan {
       + (vectorOne.y - this.origin.y)**2);
     this.fontSizeScaled = this.fontSize * this.scale;
     this.origin.y -= this.fontSizeScaled;
+    this.textLength = this.attrs.textLength;
 
 
     // If we have textLength, take advantage of it.
 
-    if (this.attrs.textLength) {
+    /*if (this.attrs.textLength) {
       this.layout = {
         x: this.origin.x,
         y: this.origin.y,
         width: this.attrs.textLength,
         height: this.fontSize + 2,
       };
-    }
+    }*/
   }
 
 
@@ -139,12 +159,18 @@ class SvgTextSpan {
             color: !asHint ? this.color : "transparent",
             fontFamily: this.fontFamily,
             fontSize: scale * this.fontSizeScaled,
-            //letterSpacing: -1,
+            fontWeight: this.fontWeight === 500 ? "500" : "400", // XXX
+            letterSpacing:
+              this.measuredWidth && this.textLength && this.text.length > 1
+              ? (this.textLength - this.measuredWidth) * this.scale
+                  / (this.text.length - 1)
+              : 0,
           },
           !ignoreLocation ? {
             position: "absolute",
             left: scale * this.origin.x,
-            top: scale * this.origin.y + 2,   // Everything seems shifted...
+            // Everything seems shifted...
+            top: scale * this.origin.y + SVG_NATIVE_TEXT_VERTICAL_SHIFT,
           } : {},
           !asHint ? {} : {
             textShadowColor: this.color,
@@ -249,7 +275,7 @@ class SvgText {
 
 
         // Add
-        
+
         this.textSpans.push(new SvgTextSpan(svg.text, textAttrs,
           transform.then(locationTransform)));
       }
@@ -372,13 +398,19 @@ class SvgText {
     });
 
     if (!!this.layout && !!other.layout) {
+      var thisX1 = this.layout.x;
+      var thisY1 = this.layout.y;
       var thisX2 = this.layout.x + this.layout.width;
       var thisY2 = this.layout.y + this.layout.height;
+      var otherX1 = other.layout.x;
+      var otherY1 = other.layout.y;
       var otherX2 = other.layout.x + other.layout.width;
       var otherY2 = other.layout.y + other.layout.height;
 
-      if (otherX2 > thisX2) this.layout.width  += otherX2 - thisX2;
-      if (otherY2 > thisY2) this.layout.height += otherY2 - thisY2;
+      this.layout.x = Math.min(thisX1, otherX1);
+      this.layout.y = Math.min(thisY1, otherY1);
+      this.layout.width = Math.max(otherX2, thisX2) - Math.min(thisX1, otherX1);
+      this.layout.height = Math.max(otherY2, thisY2) - Math.min(thisY1, otherY1);
     }
   }
 
@@ -462,14 +494,17 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
       width: 0,
       height: 0
     };
-    for (var i = 0; i < layouts.length; i++) {
-      var p = this.props.text.textSpans[i].location;
+    for (let i = 0; i < layouts.length; i++) {
+      let span = this.props.text.textSpans[i];
+      let p = span.location;
       overall.width = Math.max(overall.width, layouts[i].width + p.x);
       overall.height = Math.max(overall.height, layouts[i].height + p.y);
-      this.props.text.textSpans[i].layout = {
+      span.measuredWidth = layouts[i].width;
+      span.layout = {
         x: p.x,
         y: p.y,
-        width: layouts[i].width,
+        // Keep the text length if we already have it
+        width: span.textLength ? span.textLength : layouts[i].width,
         height: layouts[i].height,
       }
     }
@@ -685,7 +720,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
           // On top of each other
 
-          if (Math.abs(a.layout.y + a.layout.height - b.layout.y) <= 2
+          if (Math.abs(a.layout.y + a.layout.height - b.layout.y) <= 4
             || (a.layout.y < b.layout.y
               && a.layout.y + a.layout.height > b.layout.y)) {
 
@@ -703,9 +738,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               continue;
             }
 
-            // Center-justified
+            // Center-justified (10% error margin)
             if (Math.abs(a.layout.x + a.layout.width / 2
-                - b.layout.x - b.layout.width / 2) <= 4) {
+                - b.layout.x - b.layout.width / 2)
+                <= 0.10 * Math.max(a.layout.width, b.layout.width)) {
               a.merge(b);
               deleted[j] = true;
               done = false;
@@ -885,7 +921,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       );
     }
 
-    if (!this.props.testMode) {
+    if (!this.props.testMode && !ALWAYS_RENDER_TEXT_NATIVE) {
       if (svg.type === "Text") {
         return (
           <SvgComponent.Text key={key} {...attrs}>
@@ -896,6 +932,13 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       }
 
       if (svg.type === "TSpan" || svg.name === "tspan") {
+        attrs = Object.assign({}, attrs);
+        if (attrs.y !== undefined) {
+          attrs.y = parseFloat(attrs.y) + SVG_TEXT_VERTICAL_SHIFT;
+        }
+        else {
+          attrs.y = SVG_TEXT_VERTICAL_SHIFT;
+        }
         return (
           <SvgComponent.TSpan key={key} {...attrs}>
             {svg.childs
@@ -975,9 +1018,11 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Svg>
         </View>
-        {this.props.testMode && this.props.testHints
+        {((this.props.testMode && this.props.testHints)
+          || ALWAYS_RENDER_TEXT_NATIVE)
             && this.texts.map((t, index) => {
-          if (this.state.correctTextLocation[index]) return null;
+          if (this.props.testMode
+            && this.state.correctTextLocation[index]) return null;
           let location = layoutTransform.apply(t.location);
           return (
             <Draggable
@@ -988,11 +1033,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 left: location.x,
                 top: location.y,
               }}>
-              {this.state.hasTestLayouts && <SvgTextComponent
-                text={t}
-                scale={scale}
-                asHint={true}
-                />}
+              {(!this.props.testMode || this.state.hasTestLayouts)
+                && <SvgTextComponent
+                  text={t}
+                  scale={scale}
+                  asHint={this.props.testMode}
+                  />}
             </Draggable>);
           })}
         {this.props.testMode && this.texts.map((t, index) => {
