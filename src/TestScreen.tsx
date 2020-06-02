@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Animated,
   SafeAreaView,
   ScrollView,
   Text,
@@ -9,6 +10,7 @@ import BmcTextInput from './BmcTextInput';
 import InstructionsBar from './InstructionsBar';
 import MyKeyboardAvoidingView from './MyKeyboardAvoidingView';
 import TopBar from './TopBar';
+import STYLES from './Styles';
 import * as BMC from './BmcData';
 
 
@@ -18,15 +20,44 @@ type TestScreenProps = {
 
 
 type TestScreenState = {
+  incorrectStreak: number;
 }
 
 
 export default class TestScreen
 extends React.Component<TestScreenProps, TestScreenState> {
 
+  shakeAnimation: Animated.Value;
+
   constructor(props: TestScreenProps) {
     super(props);
-    this.state = {}
+    this.shakeAnimation = new Animated.Value(0);
+    this.state = {
+      incorrectStreak: 0,
+    };
+  }
+
+  shake() {
+    const DURATION = 75;
+    const EXTENT = 4;
+    const RIGHT = {
+      toValue: EXTENT,
+      duration: DURATION,
+      useNativeDriver: true
+    };
+    const LEFT = {
+      toValue: -EXTENT,
+      duration: DURATION,
+      useNativeDriver: true
+    };
+    Animated.sequence([
+      Animated.timing(this.shakeAnimation, RIGHT),
+      Animated.timing(this.shakeAnimation, LEFT ),
+      Animated.timing(this.shakeAnimation, RIGHT),
+      Animated.timing(this.shakeAnimation, LEFT ),
+      Animated.timing(this.shakeAnimation, RIGHT),
+      Animated.timing(this.shakeAnimation, LEFT ),
+    ]).start();
   }
 
   render() {
@@ -61,7 +92,23 @@ extends React.Component<TestScreenProps, TestScreenState> {
               displayAllTextInItem={false}
               optionalWords={["a", "an", "the"]}
               items={book.items}
+              onBackspace={() => this.setState({ incorrectStreak: 0 })}
+              onCorrectInput={() => this.setState({ incorrectStreak: 0 })}
+              onIncorrectInput={() => {
+                this.setState(
+                  state => ({ incorrectStreak: state.incorrectStreak + 1 }),
+                  () => { if (this.state.incorrectStreak >= 4) this.shake(); }
+                );
+              }}
               />
+            {this.state.incorrectStreak >= 3 &&
+              <Animated.View style={{
+                transform: [{ translateX: this.shakeAnimation }]
+              }}>
+                <Text style={STYLES.testWarningMessage}>
+                  &nbsp;Type just the first letter.
+                </Text>
+              </Animated.View>}
           </ScrollView>
         </MyKeyboardAvoidingView>
       </SafeAreaView>

@@ -35,7 +35,13 @@ const STYLES = StyleSheet.create({
     padding: 4,
   },
   bmcTextChapter: {
-    paddingTop: 4
+    paddingTop: 4,
+    width: 55,
+  },
+  testWarningMessage: {
+    color: "red",
+    paddingTop: 15,
+    paddingLeft: 55,
   },
   actionList: {
     backgroundColor: "#fff",

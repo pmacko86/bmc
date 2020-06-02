@@ -20,6 +20,9 @@ type BmcTextInputProps = {
   everythingEditable?: boolean;
   optionalWords?: string[];
   items: BMC.BmcItem[];
+  onBackspace?: () => void;
+  onCorrectInput?: () => void;
+  onIncorrectInput?: () => void;
 }
 
 
@@ -140,6 +143,9 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
           });
         }
       }}
+      onBackspace={this.props.onBackspace}
+      onCorrectInput={this.props.onCorrectInput}
+      onIncorrectInput={this.props.onIncorrectInput}
     />
   }
 
@@ -168,7 +174,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
               paddingTop: !element.addSpace ? 0 : (i === 0 ? 6 : 12),
             }}
             >
-            <Text style={{ flexShrink: 0, width: 55 }}></Text>
+            <Text style={[STYLES.bmcTextChapter, { width: 55 }]}></Text>
             {item.heading && item.heading !== ""
               ? this.createInput(i, item.heading, true)
               : null}
@@ -210,7 +216,6 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
               style={[STYLES.bmcTextChapter, {
                 flexShrink: 0,
                 textAlign: "right",
-                width: 55,
               }]}
               >{s + "  "}</Text>
               {this.createInput(i, item.label, false)}

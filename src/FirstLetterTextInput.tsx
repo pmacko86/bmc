@@ -35,6 +35,9 @@ type FirstLetterTextInputProps = {
   text: string;
   onCompletion?: () => void;
   onTopBackspace?: () => void;
+  onBackspace?: () => void;
+  onCorrectInput?: () => void;
+  onIncorrectInput?: () => void;
 }
 
 
@@ -374,6 +377,9 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
 
     if (key === "backspace" && this.props.allowBackspace) {
       this.backspace();
+      if (this.props.onBackspace !== undefined) {
+        this.props.onBackspace();
+      }
     }
 
     if (key.length === 1 && key.match(/[a-z0-9]/i)) {
@@ -389,6 +395,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
 
 
       // Update the state and call callbacks.
+      // TODO Do callbacks asynchronously?
 
       this.setState({
         index: r.index,
@@ -398,10 +405,17 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       });
 
       if (r.reachedEnd) {
-        // TODO Call this asynchronously?
         if (this.props.onCompletion !== undefined) {
           this.props.onCompletion();
         }
+      }
+
+      if (r.wasCorrect && this.props.onCorrectInput !== undefined) {
+        this.props.onCorrectInput();
+      }
+
+      if (!r.wasCorrect && this.props.onIncorrectInput !== undefined) {
+        this.props.onIncorrectInput();
       }
     }
   }
