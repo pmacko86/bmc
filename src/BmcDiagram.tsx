@@ -509,15 +509,17 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
     for (let i = 0; i < layouts.length; i++) {
       let span = this.props.text.textSpans[i];
       let p = span.location;
-      overall.width = Math.max(overall.width, layouts[i].width + p.x);
+      // Keep the text length if we already have it
+      let width = span.textLength ? span.textLength : layouts[i].width;
+      let height = layouts[i].height;
+      overall.width = Math.max(overall.width, width + p.x);
       overall.height = Math.max(overall.height, layouts[i].height + p.y);
       span.measuredWidth = layouts[i].width;
       span.layout = {
         x: p.x,
         y: p.y,
-        // Keep the text length if we already have it
-        width: span.textLength ? span.textLength : layouts[i].width,
-        height: layouts[i].height,
+        width: width,
+        height: height,
       }
     }
     this.props.text.layout = overall;
@@ -827,6 +829,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       t.testLocation = { x: tx, y: ty };
       ty += t.layout.height + paddingY;
       if (t.layout.width > widest) widest = t.layout.width;
+      if (t.text[0] == "3") console.log(t.layout.width);
       if (this.svgViewBox &&
         ty + t.layout.height > this.svgViewBox.y + this.svgViewBox.height) {
         ty = this.svgViewBox.y;
