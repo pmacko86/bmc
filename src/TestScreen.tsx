@@ -97,7 +97,12 @@ extends React.Component<TestScreenProps, TestScreenState> {
               onIncorrectInput={() => {
                 this.setState(
                   state => ({ incorrectStreak: state.incorrectStreak + 1 }),
-                  () => { if (this.state.incorrectStreak >= 4) this.shake(); }
+                  () => {
+                    if (this.state.incorrectStreak >= 4
+                     && (this.state.incorrectStreak - 4) % 3 == 0) {
+                      this.shake();
+                    }
+                  }
                 );
               }}
               />
