@@ -99,7 +99,7 @@ extends React.Component<TestScreenProps, TestScreenState> {
                   state => ({ incorrectStreak: state.incorrectStreak + 1 }),
                   () => {
                     if (this.state.incorrectStreak >= 4
-                     && (this.state.incorrectStreak - 4) % 3 == 0) {
+                     && (this.state.incorrectStreak - 4) % 3 === 0) {
                       this.shake();
                     }
                   }
