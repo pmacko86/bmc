@@ -562,6 +562,19 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
 }
 
 
+const BMC_DIAGRAM_TEXT_EXCEPTIONS: { [key: string]: string[] } = {
+  "Matthew": [
+    "Beatitudes",
+  ],
+  "Acts": [
+    "1st Missionary Journey",
+    "2nd Missionary Journey",
+    "3rd Missionary Journey",
+    "4th Missionary Journey",
+  ],
+}
+
+
 type BmcDiagramProps = {
   book: string;
   testMode?: boolean;
@@ -590,6 +603,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   svgView: View | null;
   svgViewBox: LayoutRectangle | undefined;
   texts: SvgText[];
+  exemptedTexts: SvgText[];
 
 
   /**
@@ -624,10 +638,21 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     }
 
 
-    // Extract the labels, so that they can be draggable.
+    // Extract the labels, and split them between exempted and draggable.
 
-    this.texts = !(this.svg && this.svg.childs) ? new Array<SvgText>(0) :
+    let allTexts = !(this.svg && this.svg.childs) ? new Array<SvgText>(0) :
       (this.svg.childs.map((c: any) => this.extractSvgText(c))).flat();
+
+    this.texts = [];
+    this.exemptedTexts = [];
+    for (let i = 0; i < allTexts.length; i++) {
+      if (!this.isExempted(allTexts[i].text)) {
+        this.texts.push(allTexts[i]);
+      }
+      else {
+        this.exemptedTexts.push(allTexts[i]);
+      }
+    }
 
     let correctTextLocation = new Array<boolean>(this.texts.length);
     for (let i = 0; i < correctTextLocation.length; i++) {
@@ -738,9 +763,11 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             || (a.layout.y < b.layout.y
               && a.layout.y + a.layout.height > b.layout.y)) {
 
-            // Hack: Do not merge red
-            if (a.color === "red" || a.color.match(/^rgb\(2..,.*/)
-              || a.color.match(/^#[c-fC-F].*/)) {
+            // Hack: Do not merge chapter numbers
+            if (a.color === "red"
+              || a.color.match(/^rgb\(2..,.*/)  // red
+              || a.color.match(/^#[c-fC-F].*/)  // red
+              || a.color === "#005c5d" /* cyan */) {
               continue;
             }
 
@@ -829,7 +856,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       t.testLocation = { x: tx, y: ty };
       ty += t.layout.height + paddingY;
       if (t.layout.width > widest) widest = t.layout.width;
-      if (t.text[0] == "3") console.log(t.layout.width);
       if (this.svgViewBox &&
         ty + t.layout.height > this.svgViewBox.y + this.svgViewBox.height) {
         ty = this.svgViewBox.y;
@@ -862,6 +888,20 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         this.doTestLayout();
       }
     }
+  }
+
+
+  /**
+   * Is the given text exempted from the special handling?
+   *
+   * @param [string] text
+   * @return [boolean] true if it is exempted
+   */
+  isExempted(text: string): boolean {
+    // Do we need to do the following? .replace(/ /g, "")
+    let e: string[] | undefined = BMC_DIAGRAM_TEXT_EXCEPTIONS[this.props.book];
+    if (e === undefined) return false;
+    return e.indexOf(text) >= 0;
   }
 
 
@@ -1084,6 +1124,24 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                   scale={scale}
                   asHint={this.props.testMode}
                   />}
+            </Draggable>);
+          })}
+        {this.exemptedTexts.map((t, index) => {
+          let location = layoutTransform.apply(t.location);
+          return (
+            <Draggable
+              key={index}
+              disabled={true}
+              style={{
+                position: "absolute",
+                left: location.x,
+                top: location.y,
+              }}>
+              <SvgTextComponent
+                text={t}
+                scale={scale}
+                asHint={false}
+                />
             </Draggable>);
           })}
         {this.props.testMode && this.texts.map((t, index) => {
