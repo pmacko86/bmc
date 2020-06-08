@@ -23,6 +23,7 @@ type DraggableProps = {
   dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationRelative?: View | Text | null;
   onDropToLocation?: (index: number) => void;
+  scale?: number,
   style: {};
 }
 
@@ -40,6 +41,7 @@ extends React.Component<DraggableProps, DraggableState> {
 
   ref: View | null;
 
+  scale: number;
   deltaPosition: XY;
   panResponder: PanResponderInstance | undefined;
 
@@ -53,6 +55,7 @@ extends React.Component<DraggableProps, DraggableState> {
     super(props);
     this.deltaPosition = { x: 0, y: 0 };
     this.ref = null;
+    this.scale = this.props.scale || 1;
     this.state = { pan: new Animated.ValueXY() };
     this.state.pan.addListener((value) => this.deltaPosition = value);
     this.state.pan.setValue({ x: 0, y: 0 });
@@ -87,8 +90,8 @@ extends React.Component<DraggableProps, DraggableState> {
       ? this.props.dropLocation : [this.props.dropLocation];
 
     for (let i = 0; i < dropLocations.length; i++) {
-      const dlx = dropLocations[i].x + relativeX;
-      const dly = dropLocations[i].y + relativeY;
+      const dlx = dropLocations[i].x * this.scale + relativeX;
+      const dly = dropLocations[i].y * this.scale + relativeY;
 
       if (gx >= dlx && gx < dlx + dropLocations[i].width
         && gy >= dly && gy < dly + dropLocations[i].height) {
@@ -116,12 +119,14 @@ extends React.Component<DraggableProps, DraggableState> {
     if (!props.disabled) {
       this.panResponder = PanResponder.create({
         onStartShouldSetPanResponder: (e, gesture) => true,
-        onPanResponderMove: Animated.event([
-          null, { dx: this.state.pan.x, dy: this.state.pan.y }
-        ]),
+        onPanResponderMove: (e, gesture) => {
+          // Animated.event([ null, { dx: this.state.pan.x, dy: this.state.pan.y, } ]),
+          this.state.pan.x.setValue(gesture.dx / this.scale);
+          this.state.pan.y.setValue(gesture.dy / this.scale);
+        },
         onPanResponderRelease: (e, gesture) => {
-          const gx = gesture.moveX;
-          const gy = gesture.moveY;
+          const gx = gesture.moveX * this.scale;
+          const gy = gesture.moveY * this.scale;
           if (this.ref) {
             this.ref.measure((textX, textY, textW, textH, textPX, textPY) => {
               const dx = gx - textPX;

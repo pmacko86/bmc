@@ -51,6 +51,17 @@ const STYLES = StyleSheet.create({
     color: "#000",
     padding: 4,
   },
+  studyHeadingStyle: {
+    color: "#000",
+    fontWeight: "bold",
+  },
+  studyCorrectStyle: {
+    color: "#040",
+    textDecorationLine: "underline",
+  },
+  studyUnseenStyle: {
+    color: "#000",
+  },
 });
 
 export default STYLES;

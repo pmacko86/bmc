@@ -1083,9 +1083,15 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     // Render
 
+    const overallScale = 1;
+
     return (
       <View
-        style={{ flexGrow: 1, flexShrink: 1 }}
+        style={{
+          flexGrow: 1,
+          flexShrink: 1,
+          transform: [{ scale: overallScale }],
+        }}
         onLayout={e => {
           this.setState({ containerLayout: e.nativeEvent.layout });
         }}>
@@ -1113,6 +1119,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             <Draggable
               key={index}
               disabled={true}
+              scale={overallScale}
               style={{
                 position: "absolute",
                 left: location.x,
@@ -1132,6 +1139,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             <Draggable
               key={index}
               disabled={true}
+              scale={overallScale}
               style={{
                 position: "absolute",
                 left: location.x,
@@ -1182,6 +1190,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 };
               })}
               dropLocationRelative={this.svgView}
+              scale={overallScale}
               onDropToLocation={(dropLocationIndex) => {
                 let dropLocation = dropLocations[dropLocationIndex];
 

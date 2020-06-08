@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Text,
+  TextStyle,
   View
 } from 'react-native';
 import FirstLetterTextInput from './FirstLetterTextInput';
@@ -20,6 +21,10 @@ type BmcTextInputProps = {
   everythingEditable?: boolean;
   optionalWords?: string[];
   items: BMC.BmcItem[];
+  correctStyle?: TextStyle;
+  incorrectStyle?: TextStyle;
+  unseenStyle?: TextStyle;
+  headingStyle?: TextStyle;
   onBackspace?: () => void;
   onCorrectInput?: () => void;
   onIncorrectInput?: () => void;
@@ -83,7 +88,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
 
 
   createInput(i: number, label: string, isHeading: boolean) {
-    const headingStyle = {
+    const headingStyle: TextStyle = this.props.headingStyle || {
       fontWeight: "bold",
       //textDecoration: "underline",
     };
@@ -93,9 +98,12 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
       }}
       allowBackspace={this.props.allowBackspace}
       autoFocus={this.props.autoFocus && this.state.index === i}
-      correctStyle={!isHeading ? undefined : headingStyle }
-      incorrectStyle={!isHeading ? undefined : headingStyle }
-      unseenStyle={!isHeading ? undefined : headingStyle }
+      correctStyle={isHeading
+        ? [headingStyle, this.props.correctStyle] : [this.props.correctStyle] }
+      incorrectStyle={isHeading
+        ? [headingStyle, this.props.incorrectStyle] : [this.props.incorrectStyle] }
+      unseenStyle={isHeading
+        ? [headingStyle, this.props.unseenStyle] : [this.props.unseenStyle] }
       displayAll={this.props.displayAllTextInItem}
       readOnly={!(this.props.everythingEditable
         || this.state.index === i

@@ -8,6 +8,7 @@ import {
   TextInputChangeEventData,
   TextInputKeyPressEventData,
   TextInputProps,
+  TextStyle,
   TouchableWithoutFeedback,
   View
 } from 'react-native';
@@ -28,9 +29,9 @@ type FirstLetterTextInputProps = {
   displayAll?: boolean;
   readOnly?: boolean;
   style?: {};
-  correctStyle?: {};
-  incorrectStyle?: {};
-  unseenStyle?: {};
+  correctStyle?: TextStyle | (TextStyle | undefined)[];
+  incorrectStyle?: TextStyle | (TextStyle | undefined)[];
+  unseenStyle?: TextStyle | (TextStyle | undefined)[];
   optionalWords?: string[];
   text: string;
   onCompletion?: () => void;

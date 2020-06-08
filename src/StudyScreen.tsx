@@ -11,6 +11,7 @@ import InstructionsBar from './InstructionsBar';
 import MyKeyboardAvoidingView from './MyKeyboardAvoidingView';
 import TopBar from './TopBar';
 import * as BMC from './BmcData';
+import STYLES from './Styles';
 
 
 type StudyScreenProps = {
@@ -62,6 +63,9 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
               displayAllTextInItem={true}
               everythingEditable={true}
               optionalWords={["a", "an", "the"]}
+              headingStyle={STYLES.studyHeadingStyle}
+              correctStyle={STYLES.studyCorrectStyle}
+              unseenStyle={STYLES.studyUnseenStyle}
               items={book.items}
               />
           </ScrollView>
