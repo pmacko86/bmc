@@ -1214,6 +1214,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 };
               })}
               dropLocationRelative={this.svgView}
+              reverseScaleDropLocation={true}
               scale={this.diagramScale}
               onDropToLocation={(dropLocationIndex) => {
                 let dropLocation = dropLocations[dropLocationIndex];

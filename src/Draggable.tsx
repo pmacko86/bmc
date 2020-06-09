@@ -23,6 +23,7 @@ type DraggableProps = {
   dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationRelative?: View | Text | null;
   onDropToLocation?: (index: number) => void;
+  reverseScaleDropLocation?: boolean;
   scale?: number | Animated.Value,
   style: {};
 }
@@ -100,11 +101,21 @@ extends React.Component<DraggableProps, DraggableState> {
       ? this.props.dropLocation : [this.props.dropLocation];
 
     for (let i = 0; i < dropLocations.length; i++) {
-      const dlx = dropLocations[i].x * this.scale + relativeX;
-      const dly = dropLocations[i].y * this.scale + relativeY;
+      let dlx = dropLocations[i].x * this.scale + relativeX;
+      let dly = dropLocations[i].y * this.scale + relativeY;
+      let dlw = dropLocations[i].width * this.scale;
+      let dlh = dropLocations[i].height * this.scale;
 
-      if (gx >= dlx && gx < dlx + dropLocations[i].width
-        && gy >= dly && gy < dly + dropLocations[i].height) {
+      if (this.props.reverseScaleDropLocation) {
+        let midpointX = dlx + dlw / 2;
+        let midpointY = dly + dlh / 2;
+        dlw = dlw / this.scale;
+        dlh = dlh / this.scale;
+        dlx = midpointX - dlw / 2;
+        dly = midpointY - dlh / 2;
+      }
+
+      if (gx >= dlx && gx < dlx + dlw && gy >= dly && gy < dly + dlh) {
         if (this.props.onDropToLocation) {
           this.props.onDropToLocation(i);
         }
