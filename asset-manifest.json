@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.js": "/bmc/static/js/main.f56418bb.chunk.js",
-    "main.js.map": "/bmc/static/js/main.f56418bb.chunk.js.map",
+    "main.js": "/bmc/static/js/main.bc4b54b9.chunk.js",
+    "main.js.map": "/bmc/static/js/main.bc4b54b9.chunk.js.map",
     "runtime-main.js": "/bmc/static/js/runtime-main.46597212.js",
     "runtime-main.js.map": "/bmc/static/js/runtime-main.46597212.js.map",
-    "static/js/2.a6ce1af9.chunk.js": "/bmc/static/js/2.a6ce1af9.chunk.js",
-    "static/js/2.a6ce1af9.chunk.js.map": "/bmc/static/js/2.a6ce1af9.chunk.js.map",
+    "static/js/2.d0eb4e4c.chunk.js": "/bmc/static/js/2.d0eb4e4c.chunk.js",
+    "static/js/2.d0eb4e4c.chunk.js.map": "/bmc/static/js/2.d0eb4e4c.chunk.js.map",
     "index.html": "/bmc/index.html",
-    "precache-manifest.fd98f8b7f59bd004ca7417668872f185.js": "/bmc/precache-manifest.fd98f8b7f59bd004ca7417668872f185.js",
+    "precache-manifest.5ff0d5c849a4652b77c3c7754c7a074f.js": "/bmc/precache-manifest.5ff0d5c849a4652b77c3c7754c7a074f.js",
     "service-worker.js": "/bmc/service-worker.js"
   }
 }
