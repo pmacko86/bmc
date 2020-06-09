@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Animated,
   Dimensions,
   LayoutRectangle,
   Text,
@@ -605,6 +606,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   texts: SvgText[];
   exemptedTexts: SvgText[];
 
+  diagramScale: Animated.Value;
+  diagramTranslate: Animated.ValueXY;
+
 
   /**
    * Create an instance of class BmcDiagram.
@@ -667,6 +671,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       correctTextLocation: correctTextLocation,
       totalWidth: this.svgViewBox ? this.svgViewBox.width : 100,
     };
+
+    this.diagramScale = new Animated.Value(1);
+    this.diagramTranslate = new Animated.ValueXY();
   }
 
 
@@ -1046,24 +1053,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     if (windowDimensions.width <= 0) return;
     if (!this.svg || !this.svgViewBox) return;
 
-
-    // Compute the scale
-
-    let totalWidth = windowDimensions.width;
-    if (totalWidth > this.state.totalWidth) totalWidth = this.state.totalWidth;
-    let scale = 1.0 * totalWidth / this.state.totalWidth;
-
-    let svgWidth = scale * this.svgViewBox.width;
+    let svgScale = 1.0;
+    let svgWidth = svgScale * this.svgViewBox.width;
     let svgHeight = 1.0 * svgWidth
       * this.svgViewBox.height / this.svgViewBox.width;
-
-    if (this.state.containerLayout) {
-      if (svgHeight > this.state.containerLayout.height) {
-        scale *= this.state.containerLayout.height / svgHeight;
-        svgHeight = this.state.containerLayout.height;
-        svgWidth = scale * this.svgViewBox.width;
-      }
-    }
 
 
     // Compute the layout transform
@@ -1076,24 +1069,55 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     else {
       let tm = SvgTransform.fromTranslate(this.state.layout.x,
         this.state.layout.y);
-      let sm = SvgTransform.fromScale(scale);
+      let sm = SvgTransform.fromScale(svgScale);
       layoutTransform = tm.then(sm);
     }
 
 
     // Render
 
-    const overallScale = 1;
-
     return (
       <View
         style={{
           flexGrow: 1,
           flexShrink: 1,
-          transform: [{ scale: overallScale }],
         }}
         onLayout={e => {
-          this.setState({ containerLayout: e.nativeEvent.layout });
+          //this.setState({ containerLayout: e.nativeEvent.layout });
+          if (!this.svgViewBox) return;
+
+          let totalWidth = this.state.totalWidth
+            ? this.state.totalWidth : this.svgViewBox.width;
+          let scale = e.nativeEvent.layout.width / totalWidth;
+          if (scale > 1) scale = 1;
+
+          let scaledSvgWidth = scale * this.svgViewBox.width;
+          let scaledSvgHeight = 1.0 * scaledSvgWidth
+            * this.svgViewBox.height / this.svgViewBox.width;
+
+          if (scaledSvgHeight > e.nativeEvent.layout.height) {
+            scale *= e.nativeEvent.layout.height / scaledSvgHeight;
+            scaledSvgHeight = e.nativeEvent.layout.height;
+            scaledSvgWidth = scale * this.svgViewBox.width;
+          }
+
+          const tx = -e.nativeEvent.layout.width  * (1 - scale) / 2;
+          const ty = -e.nativeEvent.layout.height * (1 - scale) / 2;
+
+          this.diagramScale.setValue(scale);
+          this.diagramTranslate.setValue({ x: tx, y: ty });
+        }}>
+      <Animated.View
+        style={{
+          flexGrow: 1,
+          flexShrink: 1,
+          transform: [{
+            translateX: this.diagramTranslate.x,
+          }, {
+            translateY: this.diagramTranslate.y,
+          }, {
+            scale: this.diagramScale,
+          }],
         }}>
         <View
           ref={r => { this.svgView = r; }}
@@ -1119,7 +1143,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             <Draggable
               key={index}
               disabled={true}
-              scale={overallScale}
+              scale={this.diagramScale}
               style={{
                 position: "absolute",
                 left: location.x,
@@ -1128,7 +1152,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               {(!this.props.testMode || this.state.hasTestLayouts)
                 && <SvgTextComponent
                   text={t}
-                  scale={scale}
+                  scale={svgScale}
                   asHint={this.props.testMode}
                   />}
             </Draggable>);
@@ -1139,7 +1163,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             <Draggable
               key={index}
               disabled={true}
-              scale={overallScale}
+              scale={this.diagramScale}
               style={{
                 position: "absolute",
                 left: location.x,
@@ -1147,7 +1171,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               }}>
               <SvgTextComponent
                 text={t}
-                scale={scale}
+                scale={svgScale}
                 asHint={false}
                 />
             </Draggable>);
@@ -1190,7 +1214,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 };
               })}
               dropLocationRelative={this.svgView}
-              scale={overallScale}
+              scale={this.diagramScale}
               onDropToLocation={(dropLocationIndex) => {
                 let dropLocation = dropLocations[dropLocationIndex];
 
@@ -1227,7 +1251,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               }}>
               {this.state.hasTestLayouts && <SvgTextComponent
                 text={t}
-                scale={scale}
+                scale={svgScale}
                 />}
             </Draggable>);
           })}
@@ -1244,11 +1268,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               return <SvgTextComponent
                 key={index}
                 text={t}
-                scale={scale}
+                scale={svgScale}
                 onMeasure={layout => this.handleSvgTextComponentLayout(t, layout)}
                 />;
             })}
           </View>}
+      </Animated.View>
       </View>
     );
   }

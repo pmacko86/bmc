@@ -23,7 +23,7 @@ type DraggableProps = {
   dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationRelative?: View | Text | null;
   onDropToLocation?: (index: number) => void;
-  scale?: number,
+  scale?: number | Animated.Value,
   style: {};
 }
 
@@ -55,10 +55,20 @@ extends React.Component<DraggableProps, DraggableState> {
     super(props);
     this.deltaPosition = { x: 0, y: 0 };
     this.ref = null;
-    this.scale = this.props.scale || 1;
     this.state = { pan: new Animated.ValueXY() };
     this.state.pan.addListener((value) => this.deltaPosition = value);
     this.state.pan.setValue({ x: 0, y: 0 });
+
+    if (this.props.scale === undefined) {
+      this.scale = 1;
+    }
+    else if (typeof(this.props.scale) == "number") {
+      this.scale = this.props.scale as number;
+    }
+    else {
+      this.scale = 1;
+      this.props.scale.addListener((e) => this.scale = e.value);
+    }
   }
 
 
