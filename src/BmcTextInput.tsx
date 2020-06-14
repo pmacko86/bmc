@@ -104,11 +104,11 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
         ? [headingStyle, this.props.incorrectStyle] : [this.props.incorrectStyle] }
       unseenStyle={isHeading
         ? [headingStyle, this.props.unseenStyle] : [this.props.unseenStyle] }
+      viewStyle={STYLES.testView}
       displayAll={this.props.displayAllTextInItem}
       readOnly={!(this.props.everythingEditable
         || this.state.index === i
         || this.state.previousIndex === i)}
-      style={STYLES.test}
       optionalWords={this.props.optionalWords}
       text={label}
       onCompletion={() => {

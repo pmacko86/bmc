@@ -10,7 +10,8 @@ import {
   TextInputProps,
   TextStyle,
   TouchableWithoutFeedback,
-  View
+  View,
+  ViewStyle
 } from 'react-native';
 
 
@@ -28,7 +29,7 @@ type FirstLetterTextInputProps = {
   autoFocus?: boolean;
   displayAll?: boolean;
   readOnly?: boolean;
-  style?: {};
+  viewStyle?: ViewStyle | (ViewStyle | undefined)[];
   correctStyle?: TextStyle | (TextStyle | undefined)[];
   incorrectStyle?: TextStyle | (TextStyle | undefined)[];
   unseenStyle?: TextStyle | (TextStyle | undefined)[];
@@ -445,7 +446,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     return (
       <TouchableWithoutFeedback onPress={this.handlePress}>
       <View
-        style={[this.props.style, {
+        style={[this.props.viewStyle, {
           alignItems: 'flex-start',
           flexDirection: 'row',
           flexShrink: 1,

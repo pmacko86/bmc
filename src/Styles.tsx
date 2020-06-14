@@ -29,9 +29,8 @@ const STYLES = StyleSheet.create({
     paddingLeft: 8,
     paddingRight: 4,
   },
-  test: {
+  testView: {
     backgroundColor: "#fff",
-    color: "#000",
     padding: 4,
   },
   bmcTextChapter: {
