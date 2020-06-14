@@ -9,7 +9,8 @@
     "build-web": "react-scripts build",
     "predeploy": "yarn build-web",
     "deploy": "gh-pages -d build",
-    "build-diagrams": "node node_modules/react-native-prepare-svg/bin/rn-prepare-svg -i './private/BMC Diagrams.svg' -o ./src/assets/diagrams.json"
+    "build-diagrams": "node node_modules/react-native-prepare-svg/bin/rn-prepare-svg -i './private/BMC Diagrams.svg' -o ./src/assets/diagrams.json",
+    "update-caniuse": "npx browserslist@latest --update-db"
   },
   "dependencies": {
     "@react-navigation/web": "github:react-navigation/web",
