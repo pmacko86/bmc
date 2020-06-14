@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Animated,
   Dimensions,
+  LayoutChangeEvent,
   LayoutRectangle,
   Text,
   View,
@@ -608,6 +609,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
   diagramScale: Animated.Value;
   diagramTranslate: Animated.ValueXY;
+  diagramMaxHeight: Animated.Value;
 
 
   /**
@@ -674,6 +676,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     this.diagramScale = new Animated.Value(1);
     this.diagramTranslate = new Animated.ValueXY();
+    this.diagramMaxHeight = new Animated.Value(1000);
   }
 
 
@@ -1077,17 +1080,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     // Render
 
     return (
-      <View
-        style={{
-          flexGrow: 1,
-          flexShrink: 1,
-        }}
-        onLayout={e => {
+      <Animated.View
+        onLayout={(e: LayoutChangeEvent) => {
           //this.setState({ containerLayout: e.nativeEvent.layout });
           if (!this.svgViewBox) return;
 
           let totalWidth = this.state.totalWidth
             ? this.state.totalWidth : this.svgViewBox.width;
+          let totalHeight = this.svgViewBox.height;
           let scale = e.nativeEvent.layout.width / totalWidth;
           if (scale > 1) scale = 1;
 
@@ -1101,13 +1101,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             scaledSvgWidth = scale * this.svgViewBox.width;
           }
 
-          const tx = -e.nativeEvent.layout.width  * (1 - scale) / 2;
-          const ty = -e.nativeEvent.layout.height * (1 - scale) / 2;
+          let tx = -e.nativeEvent.layout.width  * (1 - scale) / 2;
+          let ty = -e.nativeEvent.layout.height * (1 - scale) / 2;
+          let maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
 
           this.diagramScale.setValue(scale);
           this.diagramTranslate.setValue({ x: tx, y: ty });
-        }}>
-      <Animated.View
+          this.diagramMaxHeight.setValue(maxHeight);
+        }}
         style={{
           flexGrow: 1,
           flexShrink: 1,
@@ -1118,6 +1119,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           }, {
             scale: this.diagramScale,
           }],
+          maxHeight: this.diagramMaxHeight,
         }}>
         <View
           ref={r => { this.svgView = r; }}
@@ -1275,7 +1277,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             })}
           </View>}
       </Animated.View>
-      </View>
     );
   }
 }
