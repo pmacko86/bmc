@@ -70,6 +70,8 @@ extends React.Component<DraggableProps, DraggableState> {
       this.scale = 1;
       this.props.scale.addListener((e) => this.scale = e.value);
     }
+
+    this.updatePanHandlers();
   }
 
 
@@ -132,16 +134,27 @@ extends React.Component<DraggableProps, DraggableState> {
 
 
   /**
-   * Handler for receiving properties.
+   * Handler for after new properties were received.
    *
-   * @param [DraggableProps] props the new properties
+   * @param [DraggableProps] prevProps the previous properties
    */
-  UNSAFE_componentWillReceiveProps(props: DraggableProps) {
-    if (!props.disabled) {
+  componentDidUpdate(prevProps: DraggableProps) {
+    if (this.props.disabled !== prevProps.disabled) {
+      this.updatePanHandlers();
+    }
+  }
+
+
+  /**
+   * Update the pan handlers.
+   */
+  updatePanHandlers() {
+    if (!this.props.disabled) {
       this.panResponder = PanResponder.create({
         onStartShouldSetPanResponder: (e, gesture) => true,
         onPanResponderMove: (e, gesture) => {
-          // Animated.event([ null, { dx: this.state.pan.x, dy: this.state.pan.y, } ]),
+          // Animated.event([ null,
+          //   { dx: this.state.pan.x, dy: this.state.pan.y, } ]),
           this.state.pan.x.setValue(gesture.dx / this.scale);
           this.state.pan.y.setValue(gesture.dy / this.scale);
         },
