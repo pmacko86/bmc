@@ -26,7 +26,7 @@ extends React.Component<MyKeyboardAvoidingViewProps,
     if (Platform.OS === "web") {
       if (!this.props.children) return null;
       let a = React.Children.map(this.props.children, c => c);
-      if (a.length === 0) return null;
+      if (!a || a.length === 0) return null;
       return a[0];
     }
     else {
