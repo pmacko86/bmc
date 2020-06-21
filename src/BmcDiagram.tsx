@@ -4,6 +4,7 @@ import {
   Dimensions,
   LayoutChangeEvent,
   LayoutRectangle,
+  ScrollView,
   Text,
   View,
 } from "react-native";
@@ -590,6 +591,7 @@ type BmcDiagramState = {
   correctTextLocation: boolean[];
   hasTestLayouts?: boolean;
   totalWidth: number;
+  testScrollEnabled?: boolean;
 }
 
 
@@ -1243,8 +1245,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           })}
 
         {/* The draggable test components */}
-        <Animated.ScrollView
-          scrollEnabled={this.testScrollEnabled}
+        {/* There is currently an issue with Animated.ScrollView, which unlike
+          * the regular ScrollView, does not support scrollEnabled in
+          * react-native-web. However, Animated.ScrollView still behaves much
+          * better in expo, even though there is still a weird bug where the
+          * thing always bounces back after trying to scroll :(
+          */}
+        <ScrollView
+          scrollEnabled={this.state.testScrollEnabled}
           style={{
             //backgroundColor: "#80F08080",
             position: "relative",
@@ -1295,10 +1303,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               dropLocationRelative={this.svgView}
               reverseScaleDropLocation={true}
               scale={this.diagramScale}
-              onDragStart={() => this.testScrollEnabled.setValue(0)}
+              onDragStart={() => {
+                this.testScrollEnabled.setValue(0);
+                this.setState({ testScrollEnabled: false });
+              }}
               onDragStop={() => {
                 this.testScrollEnabled.setValue(
                   this.testLayoutSupportsScroll ? 1 : 0)
+                this.setState({ testScrollEnabled: true });
               }}
               onDropToLocation={(dropLocationIndex) => {
                 let dropLocation = dropLocations[dropLocationIndex];
@@ -1340,7 +1352,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 />}
             </Draggable>);
           })}
-        </Animated.ScrollView>
+        </ScrollView>
 
         {/* Measure the test components */}
         {this.props.testMode && !this.state.hasTestLayouts &&
