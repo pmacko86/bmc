@@ -22,6 +22,8 @@ type DraggableProps = {
   disabled?: boolean;
   dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationRelative?: View | Text | null;
+  onDragStart?: () => void;
+  onDragStop?: () => void;
   onDropToLocation?: (index: number) => void;
   reverseScaleDropLocation?: boolean;
   scale?: number | Animated.Value,
@@ -151,7 +153,12 @@ extends React.Component<DraggableProps, DraggableState> {
   updatePanHandlers() {
     if (!this.props.disabled) {
       this.panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: (e, gesture) => true,
+        onStartShouldSetPanResponder: (e, gesture) => {
+          if (this.props.onDragStart) {
+            this.props.onDragStart();
+          }
+          return true;
+        },
         onPanResponderMove: (e, gesture) => {
           // Animated.event([ null,
           //   { dx: this.state.pan.x, dy: this.state.pan.y, } ]),
@@ -159,6 +166,9 @@ extends React.Component<DraggableProps, DraggableState> {
           this.state.pan.y.setValue(gesture.dy / this.scale);
         },
         onPanResponderRelease: (e, gesture) => {
+          if (this.props.onDragStop) {
+            this.props.onDragStop();
+          }
           const gx = gesture.moveX * this.scale;
           const gy = gesture.moveY * this.scale;
           if (this.ref) {

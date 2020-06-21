@@ -607,6 +607,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   texts: SvgText[];
   exemptedTexts: SvgText[];
 
+  testLayoutSupportsScroll: boolean;
+  testScrollEnabled: Animated.Value;
+
   diagramScale: Animated.Value;
   diagramTranslate: Animated.ValueXY;
   diagramMaxHeight: Animated.Value;
@@ -674,6 +677,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       totalWidth: this.svgViewBox ? this.svgViewBox.width : 100,
     };
 
+    this.testLayoutSupportsScroll = true;
+    this.testScrollEnabled = new Animated.Value(1);
+
     this.diagramScale = new Animated.Value(1);
     this.diagramTranslate = new Animated.ValueXY();
     this.diagramMaxHeight = new Animated.Value(1000);
@@ -681,9 +687,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
 
   /**
-   * Compute the test layouts
+   * Prepare the test components
    */
-  doTestLayout() {
+  prepareTestComponents() {
     if (!this.props.testMode || !this.svgViewBox) return;
 
 
@@ -850,10 +856,19 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     for (i = 0; i < this.texts.length; i++) {
       this.texts[i].index = i;
     }
+  }
+
+
+  /**
+   * Compute the test layouts: Basic mouse interface
+   */
+  doTestLayoutMouseBasic() {
+    if (!this.props.testMode || !this.svgViewBox) return;
 
 
     // Lay out the components
 
+    let svgViewBoxY2 = this.svgViewBox.y + this.svgViewBox.height;
     let tx = this.svgViewBox.x + this.svgViewBox.width;
     let ty = this.svgViewBox.y;
     let widest = 0;
@@ -867,11 +882,48 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       ty += t.layout.height + paddingY;
       if (t.layout.width > widest) widest = t.layout.width;
       if (this.svgViewBox &&
-        ty + t.layout.height > this.svgViewBox.y + this.svgViewBox.height) {
+        ty + t.layout.height > svgViewBoxY2) {
         ty = this.svgViewBox.y;
         tx += paddingX + widest;
         widest = 0;
       }
+    });
+
+    let totalWidth = tx + widest + paddingY;
+
+
+    // Update the state
+
+    this.testLayoutSupportsScroll = false;
+    this.testScrollEnabled.setValue(0);
+
+    this.setState({
+      hasTestLayouts: true,
+      totalWidth: totalWidth,
+    });
+  }
+
+
+  /**
+   * Compute the test layouts: Basic mouse interface with scrolling
+   */
+  doTestLayoutMouseScroll() {
+    if (!this.props.testMode || !this.svgViewBox) return;
+
+
+    // Lay out the components
+
+    let tx = this.svgViewBox.x + this.svgViewBox.width;
+    let ty = this.svgViewBox.y;
+    let widest = 0;
+    let paddingY = 5;
+
+    this.texts.forEach(t => {
+      if (t.layout === undefined) return;
+
+      t.testLocation = { x: tx, y: ty };
+      ty += t.layout.height + paddingY;
+      if (t.layout.width > widest) widest = t.layout.width;
     });
 
     let totalWidth = tx + widest + paddingY;
@@ -885,16 +937,27 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     });
   }
 
+
+  /**
+   * Compute the test layouts
+   */
+  doTestLayout() {
+    this.doTestLayoutMouseBasic();
+    //this.doTestLayoutMouseScroll();
+  }
+
+
   /**
    * Receive the measurement of a text component
    *
    * @param [SvgText] text the corresponding text source.
-   * @param [LayoutRectangle layout the layout with dimensions filled in.
+   * @param [LayoutRectangle] layout the layout with dimensions filled in.
    */
   handleSvgTextComponentLayout(text: SvgText, layout: LayoutRectangle) {
     if (this.props.testMode && this.svgViewBox) {
       if (this.texts.map(t => !!t.layout).reduce((t, c) => t && c, true)) {
         // All layouts are now filled in
+        this.prepareTestComponents();
         this.doTestLayout();
       }
     }
@@ -1178,6 +1241,20 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 />
             </Draggable>);
           })}
+
+        {/* The draggable test components */}
+        <Animated.ScrollView
+          scrollEnabled={this.testScrollEnabled}
+          style={{
+            //backgroundColor: "#80F08080",
+            position: "relative",
+            top: -this.svgViewBox.height,
+            height: this.svgViewBox.height,
+            width: this.state.totalWidth
+              ? this.state.totalWidth : this.svgViewBox.width,
+            flexGrow: 0,
+            flexShrink: 0,
+          }}>
         {this.props.testMode && this.texts.map((t, index) => {
           let dropRadius = 35;
           let atTestLocation = !this.state.correctTextLocation[index];
@@ -1218,6 +1295,11 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               dropLocationRelative={this.svgView}
               reverseScaleDropLocation={true}
               scale={this.diagramScale}
+              onDragStart={() => this.testScrollEnabled.setValue(0)}
+              onDragStop={() => {
+                this.testScrollEnabled.setValue(
+                  this.testLayoutSupportsScroll ? 1 : 0)
+              }}
               onDropToLocation={(dropLocationIndex) => {
                 let dropLocation = dropLocations[dropLocationIndex];
 
@@ -1258,6 +1340,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 />}
             </Draggable>);
           })}
+        </Animated.ScrollView>
+
+        {/* Measure the test components */}
         {this.props.testMode && !this.state.hasTestLayouts &&
           <View style={{
             width: 2000,
