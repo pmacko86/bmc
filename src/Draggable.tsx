@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Animated,
+  MeasureOnSuccessCallback,
   LayoutRectangle,
   PanResponder,
   PanResponderInstance,
@@ -25,6 +26,7 @@ type DraggableProps = {
   onDragStart?: () => void;
   onDragStop?: () => void;
   onDropToLocation?: (index: number) => void;
+  onAfterInvalidDrop?: () => void;
   reverseScaleDropLocation?: boolean;
   scale?: number | Animated.Value,
   style: {};
@@ -129,7 +131,7 @@ extends React.Component<DraggableProps, DraggableState> {
           toValue: { x: 0, y: 0 },
           //friction: 10,
           speed: 100,
-        }).start();
+        }).start(this.props.onAfterInvalidDrop);
       }
     }
   }
@@ -204,6 +206,16 @@ extends React.Component<DraggableProps, DraggableState> {
     onCompletion?: Animated.EndCallback) {
     if (this.state.pan) {
       Animated.spring(this.state.pan, conf).start(onCompletion);
+    }
+  }
+
+
+  /**
+   * Measure
+   */
+  measure(callback: MeasureOnSuccessCallback) {
+    if (this.ref) {
+      this.ref.measure(callback);
     }
   }
 

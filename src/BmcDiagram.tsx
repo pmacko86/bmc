@@ -611,8 +611,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
   testLayoutSupportsScroll: boolean;
   testScrollEnabled: Animated.Value;
+  scrollOffset: XY;
 
   diagramScale: Animated.Value;
+  diagramScaleLast: number;
   diagramTranslate: Animated.ValueXY;
   diagramMaxHeight: Animated.Value;
 
@@ -681,8 +683,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     this.testLayoutSupportsScroll = true;
     this.testScrollEnabled = new Animated.Value(1);
+    this.scrollOffset = { x: 0, y: 0 };
 
     this.diagramScale = new Animated.Value(1);
+    this.diagramScaleLast = 1.0;
     this.diagramTranslate = new Animated.ValueXY();
     this.diagramMaxHeight = new Animated.Value(1000);
   }
@@ -1171,6 +1175,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           let maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
 
           this.diagramScale.setValue(scale);
+          this.diagramScaleLast = scale;
           this.diagramTranslate.setValue({ x: tx, y: ty });
           this.diagramMaxHeight.setValue(maxHeight);
         }}
@@ -1186,6 +1191,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           }],
           maxHeight: this.diagramMaxHeight,
         }}>
+
+        {/* The SVG */}
         <View
           ref={r => { this.svgView = r; }}
           onLayout={e => {
@@ -1200,11 +1207,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
           </Svg>
         </View>
-        {((this.props.testMode && this.props.testHints)
-          || ALWAYS_RENDER_TEXT_NATIVE)
+
+        {/* Texts in the figure */}
+        {(this.props.testMode || ALWAYS_RENDER_TEXT_NATIVE)
             && this.texts.map((t, index) => {
-          if (this.props.testMode
-            && this.state.correctTextLocation[index]) return null;
           let location = layoutTransform.apply(t.location);
           return (
             <Draggable
@@ -1220,10 +1226,13 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 && <SvgTextComponent
                   text={t}
                   scale={svgScale}
-                  asHint={this.props.testMode}
+                  asHint={this.props.testMode && this.props.testHints
+                    && !this.state.correctTextLocation[index]}
                   />}
             </Draggable>);
           })}
+
+        {/* Exempted texts, which are always a part of the figure */}
         {this.exemptedTexts.map((t, index) => {
           let location = layoutTransform.apply(t.location);
           return (
@@ -1253,22 +1262,26 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           */}
         <ScrollView
           scrollEnabled={this.state.testScrollEnabled}
+          scrollEventThrottle={16}
           style={{
             //backgroundColor: "#80F08080",
-            position: "relative",
-            top: -this.svgViewBox.height,
+            position: "absolute",
+            top: 0,   // if using relative position: -this.svgViewBox.height,
+            left: 0,
             height: this.svgViewBox.height,
             width: this.state.totalWidth
               ? this.state.totalWidth : this.svgViewBox.width,
             flexGrow: 0,
             flexShrink: 0,
-          }}>
+          }}
+          onScroll={e => this.scrollOffset = e.nativeEvent.contentOffset}>
         {this.props.testMode && this.texts.map((t, index) => {
           let dropRadius = 35;
           let atTestLocation = !this.state.correctTextLocation[index];
+          if (!atTestLocation) return null;
+
           let location = layoutTransform.apply(
             atTestLocation && t.testLocation ? t.testLocation : t.location);
-
           let dropLocations: { index: number, location: XY}[] = [];
           if (atTestLocation && t.testLocation) {
             dropLocations.push({
@@ -1307,7 +1320,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 this.testScrollEnabled.setValue(0);
                 this.setState({ testScrollEnabled: false });
               }}
-              onDragStop={() => {
+              onAfterInvalidDrop={() => {
                 this.testScrollEnabled.setValue(
                   this.testLayoutSupportsScroll ? 1 : 0)
                 this.setState({ testScrollEnabled: true });
@@ -1334,11 +1347,24 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                   t.draggable.spring({
                     toValue: {
                       x: dropLocation.location.x - location.x,
-                      y: dropLocation.location.y - location.y,
+                      y: dropLocation.location.y - location.y
+                        + this.scrollOffset.y,
                     },
                     speed: 100,
                   },
-                  () => this.setState({ correctTextLocation: v }));
+                  () => {
+                    this.testScrollEnabled.setValue(
+                      this.testLayoutSupportsScroll ? 1 : 0)
+                    this.setState({
+                      testScrollEnabled: true,
+                      correctTextLocation: v
+                   });
+                  });
+                }
+                else {
+                  this.testScrollEnabled.setValue(
+                    this.testLayoutSupportsScroll ? 1 : 0)
+                  this.setState({ testScrollEnabled: true });
                 }
               }}
               style={{
