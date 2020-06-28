@@ -4,7 +4,8 @@ import {
   Dimensions,
   LayoutChangeEvent,
   LayoutRectangle,
-  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
   Text,
   View,
 } from "react-native";
@@ -586,7 +587,6 @@ type BmcDiagramProps = {
 
 
 type BmcDiagramState = {
-  layout?: LayoutRectangle;
   containerLayout?: LayoutRectangle;
   correctTextLocation: boolean[];
   hasTestLayouts?: boolean;
@@ -676,7 +676,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     // Set the initial state
 
     this.state = {
-      layout: undefined,
       correctTextLocation: correctTextLocation,
       totalWidth: this.svgViewBox ? this.svgViewBox.width : 100,
     };
@@ -948,8 +947,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
    * Compute the test layouts
    */
   doTestLayout() {
-    this.doTestLayoutMouseBasic();
-    //this.doTestLayoutMouseScroll();
+    //this.doTestLayoutMouseBasic();
+    this.doTestLayoutMouseScroll();
   }
 
 
@@ -1125,33 +1124,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     if (windowDimensions.width <= 0) return;
     if (!this.svg || !this.svgViewBox) return;
 
-    let svgScale = 1.0;
-    let svgWidth = svgScale * this.svgViewBox.width;
-    let svgHeight = 1.0 * svgWidth
-      * this.svgViewBox.height / this.svgViewBox.width;
-
-
-    // Compute the layout transform
-
-    let layoutTransform: SvgTransform;
-
-    if (!this.state.layout) {
-      layoutTransform = new SvgTransform();
-    }
-    else {
-      let tm = SvgTransform.fromTranslate(this.state.layout.x,
-        this.state.layout.y);
-      let sm = SvgTransform.fromScale(svgScale);
-      layoutTransform = tm.then(sm);
-    }
-
 
     // Render
 
     return (
       <Animated.View
         onLayout={(e: LayoutChangeEvent) => {
-          //this.setState({ containerLayout: e.nativeEvent.layout });
           if (!this.svgViewBox) return;
 
           let totalWidth = this.state.totalWidth
@@ -1164,14 +1142,15 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           let scaledSvgHeight = 1.0 * scaledSvgWidth
             * this.svgViewBox.height / this.svgViewBox.width;
 
-          if (scaledSvgHeight > e.nativeEvent.layout.height) {
+          if (scaledSvgHeight > e.nativeEvent.layout.height
+           && e.nativeEvent.layout.height > 0) {
             scale *= e.nativeEvent.layout.height / scaledSvgHeight;
             scaledSvgHeight = e.nativeEvent.layout.height;
             scaledSvgWidth = scale * this.svgViewBox.width;
           }
 
-          let tx = -e.nativeEvent.layout.width  * (1 - scale) / 2;
-          let ty = -e.nativeEvent.layout.height * (1 - scale) / 2;
+          let tx = -this.svgViewBox.width  * (1 - scale) / 2;
+          let ty = -this.svgViewBox.height * (1 - scale) / 2;
           let maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
 
           this.diagramScale.setValue(scale);
@@ -1179,206 +1158,235 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           this.diagramTranslate.setValue({ x: tx, y: ty });
           this.diagramMaxHeight.setValue(maxHeight);
         }}
-        style={{
-          flexGrow: 1,
-          flexShrink: 1,
-          transform: [{
-            translateX: this.diagramTranslate.x,
-          }, {
-            translateY: this.diagramTranslate.y,
-          }, {
-            scale: this.diagramScale,
-          }],
-          maxHeight: this.diagramMaxHeight,
-        }}>
+        style={[
+          {
+            //backgroundColor: "#F0F08080",
+            flexGrow: 1,
+            flexShrink: 1,
+          }, this.props.testMode ? [] : {
+            maxHeight: this.diagramMaxHeight,
+          }
+        ]}>
 
-        {/* The SVG */}
-        <View
-          ref={r => { this.svgView = r; }}
-          onLayout={e => {
-            // Get the absolute position, so that we can then
-            // position floatable components relative to it.
-            this.setState({ layout: e.nativeEvent.layout });
-          }}>
-          <Svg
-            width={svgWidth}
-            height={svgHeight}
-            viewBox={this.svg.attrs.viewBox}>
-            {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
-          </Svg>
-        </View>
-
-        {/* Texts in the figure */}
-        {(this.props.testMode || ALWAYS_RENDER_TEXT_NATIVE)
-            && this.texts.map((t, index) => {
-          let location = layoutTransform.apply(t.location);
-          return (
-            <Draggable
-              key={index}
-              disabled={true}
-              scale={this.diagramScale}
-              style={{
-                position: "absolute",
-                left: location.x,
-                top: location.y,
-              }}>
-              {(!this.props.testMode || this.state.hasTestLayouts)
-                && <SvgTextComponent
-                  text={t}
-                  scale={svgScale}
-                  asHint={this.props.testMode && this.props.testHints
-                    && !this.state.correctTextLocation[index]}
-                  />}
-            </Draggable>);
-          })}
-
-        {/* Exempted texts, which are always a part of the figure */}
-        {this.exemptedTexts.map((t, index) => {
-          let location = layoutTransform.apply(t.location);
-          return (
-            <Draggable
-              key={index}
-              disabled={true}
-              scale={this.diagramScale}
-              style={{
-                position: "absolute",
-                left: location.x,
-                top: location.y,
-              }}>
-              <SvgTextComponent
-                text={t}
-                scale={svgScale}
-                asHint={false}
-                />
-            </Draggable>);
-          })}
-
-        {/* The draggable test components */}
-        {/* There is currently an issue with Animated.ScrollView, which unlike
-          * the regular ScrollView, does not support scrollEnabled in
-          * react-native-web. However, Animated.ScrollView still behaves much
-          * better in expo, even though there is still a weird bug where the
-          * thing always bounces back after trying to scroll :(
-          */}
-        <ScrollView
-          scrollEnabled={this.state.testScrollEnabled}
-          scrollEventThrottle={16}
+        {/* The base diagram */}
+        <Animated.View
+          width={this.svgViewBox.width /* because the translate are relative to this */}
+          height={this.svgViewBox.height}
           style={{
-            //backgroundColor: "#80F08080",
-            position: "absolute",
-            top: 0,   // if using relative position: -this.svgViewBox.height,
+            //backgroundColor: "#80F0F080",
+            position: this.props.testMode && "absolute",
+            top: 0,
             left: 0,
-            height: this.svgViewBox.height,
-            width: this.state.totalWidth
-              ? this.state.totalWidth : this.svgViewBox.width,
             flexGrow: 0,
             flexShrink: 0,
+            transform: [{
+              translateX: this.diagramTranslate.x,
+            }, {
+              translateY: this.diagramTranslate.y,
+            }, {
+              scale: this.diagramScale,
+            }],
+          }}>
+
+          {/* The SVG */}
+          <View ref={r => { this.svgView = r; }}>
+            <Svg
+              width={this.svgViewBox.width}
+              height={this.svgViewBox.height}
+              viewBox={this.svg.attrs.viewBox}>
+              {this.svg.childs.map((c: any, i: any) => this.renderSvg(c, i))}
+            </Svg>
+          </View>
+
+          {/* Texts in the figure */}
+          {(this.props.testMode || ALWAYS_RENDER_TEXT_NATIVE)
+              && this.texts.map((t, index) => {
+            return (
+              <Draggable
+                key={index}
+                disabled={true}
+                scale={this.diagramScale}
+                style={{
+                  position: "absolute",
+                  left: t.location.x,
+                  top: t.location.y,
+                }}>
+                {(!this.props.testMode || this.state.hasTestLayouts)
+                  && <SvgTextComponent
+                    text={t}
+                    asHint={this.props.testMode && this.props.testHints
+                      && !this.state.correctTextLocation[index]}
+                    />}
+              </Draggable>);
+            })}
+
+          {/* Exempted texts, which are always a part of the figure */}
+          {this.exemptedTexts.map((t, index) => {
+            return (
+              <Draggable
+                key={index}
+                disabled={true}
+                scale={this.diagramScale}
+                style={{
+                  position: "absolute",
+                  left: t.location.x,
+                  top: t.location.y,
+                }}>
+                <SvgTextComponent
+                  text={t}
+                  asHint={false}
+                  />
+              </Draggable>);
+            })}
+        </Animated.View>
+
+        {/* The draggable test components */}
+        {/* TODO There is an annoying bug in expo, where if you drag a component
+          * too quickly (e.g. using a very fast swipe gesture), the thing moves
+          * even before the scrolling disables, which leaves the text hanging
+          * out there in the middle of the air, and it does not call any of the
+          * callbacks, so that, for example, scrolling does not get reenabled.
+          * One option to fix this is to disable scrolling altogether if the
+          * test layout permits it (e.g. if it auto-closes gaps).
+          */}
+        <Animated.ScrollView
+          scrollEnabled={this.testScrollEnabled}
+          scrollEventThrottle={16}
+          style={{
+            top: 0,
+            left: 0,
+            flexGrow: 1,  // Used to scale to the window dimensions
+            flexShrink: 1,
           }}
-          onScroll={e => this.scrollOffset = e.nativeEvent.contentOffset}>
-        {this.props.testMode && this.texts.map((t, index) => {
-          let dropRadius = 35;
-          let atTestLocation = !this.state.correctTextLocation[index];
-          if (!atTestLocation) return null;
+          onScroll={Animated.event([null], {
+              listener: (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+                this.scrollOffset = e.nativeEvent.contentOffset
+              }
+            }
+          )}>
 
-          let location = layoutTransform.apply(
-            atTestLocation && t.testLocation ? t.testLocation : t.location);
-          let dropLocations: { index: number, location: XY}[] = [];
-          if (atTestLocation && t.testLocation) {
-            dropLocations.push({
-              index: index,
-              location: layoutTransform.apply(t.location),
-            });
-          }
+          {/* The container used for adjusting the scale */}
+          <Animated.View
+            style={{
+              //backgroundColor: "#F0F08080",
+              position: "absolute",
+              top: 0,
+              left: 0,
+              flexGrow: 0,
+              flexShrink: 0,
+              width: this.svgViewBox.width,
+              height: this.svgViewBox.height,
+              transform: [{
+                translateX: this.diagramTranslate.x,
+              }, {
+                translateY: this.diagramTranslate.y,
+              }, {
+                scale: this.diagramScale,
+              }],
+              //maxHeight: this.diagramMaxHeight,
+            }}>
+          {this.props.testMode && this.texts.map((t, index) => {
+            let dropRadius = 35;
+            let atTestLocation = !this.state.correctTextLocation[index];
+            if (!atTestLocation) return null;
 
-          for (let i = 0; i < t.equivalents.length; i++) {
-            let e = t.equivalents[i];
-            if (!this.state.correctTextLocation[e.index] && e.testLocation) {
+            let location =
+              atTestLocation && t.testLocation ? t.testLocation : t.location;
+            let dropLocations: { index: number, location: XY}[] = [];
+            if (atTestLocation && t.testLocation) {
               dropLocations.push({
-                index: e.index,
-                location: layoutTransform.apply(e.location),
+                index: index,
+                location: t.location,
               });
             }
-          }
 
-          return (
-            <Draggable
-              key={index}
-              ref={d => t.draggable = d}
-              disabled={!atTestLocation}
-              dropLocation={dropLocations.map(l => {
-                return {
-                  x: l.location.x - dropRadius,
-                  y: l.location.y - dropRadius,
-                  width: 2 * dropRadius,
-                  height: 2 * dropRadius
-                };
-              })}
-              dropLocationRelative={this.svgView}
-              reverseScaleDropLocation={true}
-              scale={this.diagramScale}
-              onDragStart={() => {
-                this.testScrollEnabled.setValue(0);
-                this.setState({ testScrollEnabled: false });
-              }}
-              onAfterInvalidDrop={() => {
-                this.testScrollEnabled.setValue(
-                  this.testLayoutSupportsScroll ? 1 : 0)
-                this.setState({ testScrollEnabled: true });
-              }}
-              onDropToLocation={(dropLocationIndex) => {
-                let dropLocation = dropLocations[dropLocationIndex];
+            for (let i = 0; i < t.equivalents.length; i++) {
+              let e = t.equivalents[i];
+              if (!this.state.correctTextLocation[e.index] && e.testLocation) {
+                dropLocations.push({
+                  index: e.index,
+                  location: e.location,
+                });
+              }
+            }
 
-                // For equivalent components, swap them if the user dragged
-                // one to the drop area of the other
-                [this.texts[index], this.texts[dropLocation.index]]
-                  = [this.texts[dropLocation.index], this.texts[index]];
-                [this.texts[index].index,
-                 this.texts[dropLocation.index].index]
-                  = [this.texts[dropLocation.index].index,
-                     this.texts[index].index];
-                [this.texts[index].testLocation,
-                 this.texts[dropLocation.index].testLocation]
-                  = [this.texts[dropLocation.index].testLocation,
-                     this.texts[index].testLocation];
-
-                let v = this.state.correctTextLocation.slice(0);
-                v[index] = true;
-                if (t.draggable) {
-                  t.draggable.spring({
-                    toValue: {
-                      x: dropLocation.location.x - location.x,
-                      y: dropLocation.location.y - location.y
-                        + this.scrollOffset.y,
-                    },
-                    speed: 100,
-                  },
-                  () => {
-                    this.testScrollEnabled.setValue(
-                      this.testLayoutSupportsScroll ? 1 : 0)
-                    this.setState({
-                      testScrollEnabled: true,
-                      correctTextLocation: v
-                   });
-                  });
-                }
-                else {
+            return (
+              <Draggable
+                key={index}
+                ref={d => t.draggable = d}
+                disabled={!atTestLocation}
+                dropLocation={dropLocations.map(l => {
+                  return {
+                    x: l.location.x - dropRadius,
+                    y: l.location.y - dropRadius,
+                    width: 2 * dropRadius,
+                    height: 2 * dropRadius
+                  };
+                })}
+                dropLocationRelative={this.svgView}
+                reverseScaleDropLocation={true}
+                scale={this.diagramScale}
+                onDragStart={() => {
+                  this.testScrollEnabled.setValue(0);
+                  this.setState({ testScrollEnabled: false });
+                }}
+                onAfterInvalidDrop={() => {
                   this.testScrollEnabled.setValue(
                     this.testLayoutSupportsScroll ? 1 : 0)
                   this.setState({ testScrollEnabled: true });
-                }
-              }}
-              style={{
-                position: "absolute",
-                left: location.x,
-                top: location.y,
-              }}>
-              {this.state.hasTestLayouts && <SvgTextComponent
-                text={t}
-                scale={svgScale}
-                />}
-            </Draggable>);
-          })}
-        </ScrollView>
+                }}
+                onDropToLocation={(dropLocationIndex) => {
+                  let dropLocation = dropLocations[dropLocationIndex];
+
+                  // For equivalent components, swap them if the user dragged
+                  // one to the drop area of the other
+                  [this.texts[index], this.texts[dropLocation.index]]
+                    = [this.texts[dropLocation.index], this.texts[index]];
+                  [this.texts[index].index,
+                   this.texts[dropLocation.index].index]
+                    = [this.texts[dropLocation.index].index,
+                       this.texts[index].index];
+                  [this.texts[index].testLocation,
+                   this.texts[dropLocation.index].testLocation]
+                    = [this.texts[dropLocation.index].testLocation,
+                       this.texts[index].testLocation];
+
+                  let v = this.state.correctTextLocation.slice(0);
+                  v[index] = true;
+                  if (t.draggable) {
+                    t.draggable.spring({
+                      toValue: {
+                        x: dropLocation.location.x - location.x,
+                        y: dropLocation.location.y - location.y
+                          + this.scrollOffset.y / this.diagramScaleLast,
+                      },
+                      speed: 100,
+                    },
+                    () => {
+                      this.testScrollEnabled.setValue(
+                        this.testLayoutSupportsScroll ? 1 : 0)
+                      this.setState({
+                        testScrollEnabled: true,
+                        correctTextLocation: v
+                     });
+                    });
+                  }
+                  else {
+                    this.testScrollEnabled.setValue(
+                      this.testLayoutSupportsScroll ? 1 : 0)
+                    this.setState({ testScrollEnabled: true });
+                  }
+                }}
+                style={{
+                  position: "absolute",
+                  left: location.x,
+                  top: location.y,
+                }}>
+                {this.state.hasTestLayouts && <SvgTextComponent text={t} />}
+              </Draggable>);
+            })}
+          </Animated.View>
+        </Animated.ScrollView>
 
         {/* Measure the test components */}
         {this.props.testMode && !this.state.hasTestLayouts &&
@@ -1394,9 +1402,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               return <SvgTextComponent
                 key={index}
                 text={t}
-                scale={svgScale}
-                onMeasure={layout => this.handleSvgTextComponentLayout(t, layout)}
-                />;
+                onMeasure={layout => {
+                  this.handleSvgTextComponentLayout(t, layout)
+                }}/>;
             })}
           </View>}
       </Animated.View>
