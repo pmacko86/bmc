@@ -74,7 +74,11 @@ export abstract class BmcTestLayout {
    * Handle a test component being removed from the test repository
    */
   handleComponentRemoved(texts: SvgText[], index: number,
-    callback?: () => void): void {};
+    callback?: () => void): void {
+    if (callback) {
+      callback();
+    }
+  };
 }
 
 
@@ -161,52 +165,69 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
    */
   handleComponentRemoved(texts: SvgText[], index: number,
     callback?: () => void): void {
-    if (index + 1 >= texts.length) return;
+    if (index + 1 >= texts.length) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
 
     let textCurrent = texts[index];
     let textNext = texts[index + 1];
-    if (textCurrent.testLocation && textNext.testLocation) {
-      let dy = textCurrent.testLocation.y - textNext.testLocation.y;
-      let last: SvgText | null = null;
-      for (let i = index + 1; i < texts.length; i++) {
-        let text = texts[i];
-        if (text.draggable && text.testLocation) {
-          last = text;
-        }
+    if (!textCurrent.testLocation || !textNext.testLocation) {
+      if (callback) {
+        callback();
       }
-      for (let i = index + 1; i < texts.length; i++) {
-        let text = texts[i];
-        if (text.draggable && text.testLocation) {
-          if (text !== last) {
-            text.draggable.spring({
-              toValue: {
-                x: 0,
-                y: dy,
-              },
-              speed: 100,
-            });
-          }
-          else {
-            text.draggable.spring({
-              toValue: {
-                x: 0,
-                y: dy,
-              },
-              speed: 100,
+      return;
+    }
+
+    let dy = textCurrent.testLocation.y - textNext.testLocation.y;
+    let last: SvgText | null = null;
+    for (let i = index + 1; i < texts.length; i++) {
+      let text = texts[i];
+      if (text.draggable && text.testLocation) {
+        last = text;
+      }
+    }
+    if (last === null) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    for (let i = index + 1; i < texts.length; i++) {
+      let text = texts[i];
+      if (text.draggable && text.testLocation) {
+        if (text !== last) {
+          text.draggable.spring({
+            toValue: {
+              x: 0,
+              y: dy,
             },
-            () => {
-              for (let j = index + 1; j < texts.length; j++) {
-                let tj = texts[j];
-                if (tj.draggable && tj.testLocation) {
-                  tj.testLocation.y += dy;
-                  tj.draggable.resetPan();
-                }
+            speed: 100,
+          });
+        }
+        else {
+          text.draggable.spring({
+            toValue: {
+              x: 0,
+              y: dy,
+            },
+            speed: 100,
+          },
+          () => {
+            for (let j = index + 1; j < texts.length; j++) {
+              let tj = texts[j];
+              if (tj.draggable && tj.testLocation) {
+                tj.testLocation.y += dy;
+                tj.draggable.resetPan();
               }
-              if (callback) {
-                callback();
-              }
-            });
-          }
+            }
+            if (callback) {
+              callback();
+            }
+          });
         }
       }
     }
