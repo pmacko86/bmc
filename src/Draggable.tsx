@@ -211,6 +211,16 @@ extends React.Component<DraggableProps, DraggableState> {
 
 
   /**
+   * Reset the pan value
+   */
+  resetPan() {
+    if (this.state.pan) {
+      this.state.pan.setValue({ x: 0, y: 0 });
+    }
+  }
+
+
+  /**
    * Measure
    */
   measure(callback: MeasureOnSuccessCallback) {
