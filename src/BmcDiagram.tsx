@@ -245,6 +245,9 @@ const BMC_DIAGRAM_TEXT_EXCEPTIONS: { [key: string]: string[] } = {
     "3rd Missionary Journey",
     "4th Missionary Journey",
   ],
+  "Romans": [
+    "The Heart of Jesus Christ",
+  ]
 }
 
 
