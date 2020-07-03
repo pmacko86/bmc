@@ -968,13 +968,11 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                     t.draggable.spring({
                       toValue: {
                         x: dropLocation.location.x - location.x
-                          - this.testLayout.basePosition.x
-                            / this.diagramScaleLast,
+                          - this.testLayout.basePosition.x,
                         y: dropLocation.location.y - location.y
                           + this.scrollOffset.y
                             / this.diagramScaleLast
-                          - this.testLayout.basePosition.y
-                            / this.diagramScaleLast,
+                          - this.testLayout.basePosition.y,
                       },
                       speed: 100,
                     },
