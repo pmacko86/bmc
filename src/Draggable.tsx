@@ -7,6 +7,7 @@ import {
   PanResponderInstance,
   Text,
   View,
+  ViewStyle,
 } from "react-native";
 
 
@@ -22,14 +23,15 @@ type XY = {
 type DraggableProps = {
   disabled?: boolean;
   dropLocation?: LayoutRectangle | LayoutRectangle[];
+  dropLocationScale?: number | Animated.Value,
   dropLocationRelative?: View | Text | null;
   onDragStart?: () => void;
   onDragStop?: () => void;
   onDropToLocation?: (index: number) => void;
   onAfterInvalidDrop?: () => void;
   reverseScaleDropLocation?: boolean;
-  scale?: number | Animated.Value,
-  style: {};
+  scale?: number | Animated.Value;
+  style: ViewStyle;
 }
 
 
@@ -48,6 +50,7 @@ extends React.Component<DraggableProps, DraggableState> {
 
   scale: number;
   deltaPosition: XY;
+  dropLocationScale: number;
   panResponder: PanResponderInstance | undefined;
 
 
@@ -73,6 +76,18 @@ extends React.Component<DraggableProps, DraggableState> {
     else {
       this.scale = 1;
       this.props.scale.addListener((e) => this.scale = e.value);
+    }
+
+    if (this.props.dropLocationScale === undefined) {
+      this.dropLocationScale = 1;
+    }
+    else if (typeof(this.props.dropLocationScale) == "number") {
+      this.dropLocationScale = this.props.dropLocationScale as number;
+    }
+    else {
+      this.dropLocationScale = 1;
+      this.props.dropLocationScale.addListener(
+        (e) => this.dropLocationScale = e.value);
     }
 
     this.updatePanHandlers();
@@ -107,16 +122,16 @@ extends React.Component<DraggableProps, DraggableState> {
       ? this.props.dropLocation : [this.props.dropLocation];
 
     for (let i = 0; i < dropLocations.length; i++) {
-      let dlx = dropLocations[i].x * this.scale + relativeX;
-      let dly = dropLocations[i].y * this.scale + relativeY;
+      let dlx = dropLocations[i].x * this.dropLocationScale + relativeX;
+      let dly = dropLocations[i].y * this.dropLocationScale + relativeY;
       let dlw = dropLocations[i].width * this.scale;
       let dlh = dropLocations[i].height * this.scale;
 
       if (this.props.reverseScaleDropLocation) {
         let midpointX = dlx + dlw / 2;
         let midpointY = dly + dlh / 2;
-        dlw = dlw / this.scale;
-        dlh = dlh / this.scale;
+        dlw = dlw / this.dropLocationScale;
+        dlh = dlh / this.dropLocationScale;
         dlx = midpointX - dlw / 2;
         dly = midpointY - dlh / 2;
       }

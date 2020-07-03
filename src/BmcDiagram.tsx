@@ -55,6 +55,7 @@ export abstract class BmcTestLayout {
   basePosition: XY;
   extraHeight: number;
   extraWidth: number;
+  scale: boolean;
   supportsScroll: boolean;
 
   /**
@@ -64,6 +65,7 @@ export abstract class BmcTestLayout {
     this.basePosition = { x: 0, y: 0 };
     this.extraWidth = 0;
     this.extraHeight = 0;
+    this.scale = true;
     this.supportsScroll = false;
   }
 
@@ -161,6 +163,7 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
 
     this.basePosition = { x: svgViewBox.x + svgViewBox.width, y: svgViewBox.y };
     this.extraWidth = tx + widest + paddingY;
+    this.scale = false;
   }
 
   /**
@@ -265,7 +268,7 @@ type BmcDiagramState = {
   containerLayout?: LayoutRectangle;
   correctTextLocation: boolean[];
   hasTestLayouts?: boolean;
-  totalWidth: number;
+  extraWidth: number;
   testScrollEnabled?: boolean;
 }
 
@@ -291,6 +294,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   scrollOffset: XY;
   diagramScale: Animated.Value;
   diagramScaleLast: number;
+  testScale: Animated.Value;
+  testScaleLast: number;
   diagramTranslate: Animated.ValueXY;
   diagramMaxHeight: Animated.Value;
 
@@ -354,7 +359,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     this.state = {
       correctTextLocation: correctTextLocation,
-      totalWidth: this.svgViewBox ? this.svgViewBox.width : 100,
+      extraWidth: 0,
     };
 
     this.testLayoutSupportsScroll = true;
@@ -363,6 +368,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     this.diagramScale = new Animated.Value(1);
     this.diagramScaleLast = 1.0;
+    this.testScale = new Animated.Value(1);
+    this.testScaleLast = 1.0;
     this.diagramTranslate = new Animated.ValueXY();
     this.diagramMaxHeight = new Animated.Value(1000);
 
@@ -547,8 +554,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
    * Compute the test layouts
    */
   doTestLayout() {
-    let svgViewBoxX2 = this.svgViewBox.x + this.svgViewBox.width;
-
     this.testLayout.doLayout(this.texts, this.svgViewBox);
 
     this.testLayoutSupportsScroll = this.testLayout.supportsScroll;
@@ -556,7 +561,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     this.setState({
       hasTestLayouts: true,
-      totalWidth: svgViewBoxX2 + this.testLayout.extraWidth,
+      extraWidth: this.testLayout.extraWidth,
     });
   }
 
@@ -741,10 +746,17 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         onLayout={(e: LayoutChangeEvent) => {
           if (!this.svgViewBox) return;
 
-          let totalWidth = this.state.totalWidth
-            ? this.state.totalWidth : this.svgViewBox.width;
-          let totalHeight = this.svgViewBox.height;
-          let scale = e.nativeEvent.layout.width / totalWidth;
+          let extraWidth = this.state.extraWidth ? this.state.extraWidth : 0;
+          let scale = 1;
+          if (this.testLayout.scale) {
+            let totalWidth = this.svgViewBox.width + extraWidth;
+            scale = e.nativeEvent.layout.width / totalWidth;
+          }
+          else {
+            let remainingWidth = e.nativeEvent.layout.width - extraWidth;
+            if (remainingWidth < 50) remainingWidth = 50;
+            scale = remainingWidth / this.svgViewBox.width;
+          }
           if (scale > 1) scale = 1;
 
           let scaledSvgWidth = scale * this.svgViewBox.width;
@@ -760,10 +772,20 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
           let tx = -this.svgViewBox.width  * (1 - scale) / 2;
           let ty = -this.svgViewBox.height * (1 - scale) / 2;
-          let maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
+
+          let maxHeight = 0;  // Used only in dislay (not test) mode
+          if (!this.props.testMode) {
+            let totalWidth = this.svgViewBox.width + extraWidth;
+            let totalHeight = this.svgViewBox.height;
+            maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
+          }
 
           this.diagramScale.setValue(scale);
           this.diagramScaleLast = scale;
+          if (this.testLayout.scale) {
+            this.testScale.setValue(scale);
+            this.testScaleLast = scale;
+          }
           this.diagramTranslate.setValue({ x: tx, y: ty });
           this.diagramMaxHeight.setValue(maxHeight);
         }}
@@ -885,14 +907,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 this.testLayout.basePosition.x),
               flexGrow: 0,
               flexShrink: 0,
-              width: this.svgViewBox.width,
-              height: this.svgViewBox.height,
+              width: 0,   // Need size 0x0 to correctly apply the scale; this
+              height: 0,  // is indeed okay because of visible overflow.
               transform: [{
-                translateX: this.diagramTranslate.x,
-              }, {
-                translateY: this.diagramTranslate.y,
-              }, {
-                scale: this.diagramScale,
+                scale: this.testScale,
               }],
               //maxHeight: this.diagramMaxHeight,
             }}>
@@ -921,6 +939,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               }
             }
 
+            let myScale = new Animated.Value(1);
+
             return (
               <Draggable
                 key={index}
@@ -936,7 +956,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 })}
                 dropLocationRelative={this.svgView}
                 reverseScaleDropLocation={true}
-                scale={this.diagramScale}
+                dropLocationScale={this.diagramScale}
+                scale={this.testScale}
                 onDragStart={() => {
                   this.testScrollEnabled.setValue(0);
                   this.setState({ testScrollEnabled: false });
@@ -965,14 +986,21 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                   let v = this.state.correctTextLocation.slice(0);
                   v[index] = true;
                   if (t.draggable) {
+                    let d = this.diagramScaleLast / this.testScaleLast;
+                    Animated.spring(myScale, {
+                      toValue: this.diagramScaleLast / this.testScaleLast,
+                      speed: 100,
+                    }).start();
                     t.draggable.spring({
                       toValue: {
-                        x: dropLocation.location.x - location.x
-                          - this.testLayout.basePosition.x,
-                        y: dropLocation.location.y - location.y
-                          + this.scrollOffset.y
+                        x: dropLocation.location.x * d - location.x
+                          - this.testLayout.basePosition.x * d
+                          - (t.layout ? t.layout.width : 0) * (1 - d) / 2,
+                        y: dropLocation.location.y * d - location.y
+                          + this.scrollOffset.y * d
                             / this.diagramScaleLast
-                          - this.testLayout.basePosition.y,
+                          - this.testLayout.basePosition.y * d
+                          - (t.layout ? t.layout.height : 0) * (1 - d) / 2,
                       },
                       speed: 100,
                     },
@@ -999,7 +1027,15 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                   left: location.x,
                   top: location.y,
                 }}>
-                {this.state.hasTestLayouts && <SvgTextComponent text={t} />}
+                {this.state.hasTestLayouts &&
+                  <Animated.View
+                    style={{
+                      transform: [{
+                        scale: myScale,
+                      }]
+                    }}>
+                    <SvgTextComponent text={t} />
+                  </Animated.View>}
               </Draggable>);
             })}
           </Animated.View>
