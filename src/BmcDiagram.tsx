@@ -52,6 +52,7 @@ type XY = {
  */
 export abstract class BmcTestLayout {
 
+  basePosition: XY;
   extraHeight: number;
   extraWidth: number;
   supportsScroll: boolean;
@@ -60,6 +61,7 @@ export abstract class BmcTestLayout {
    * The constructor
    */
   constructor() {
+    this.basePosition = { x: 0, y: 0 };
     this.extraWidth = 0;
     this.extraHeight = 0;
     this.supportsScroll = false;
@@ -144,8 +146,8 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
    */
   doLayout(texts: SvgText[], svgViewBox: LayoutRectangle) {
 
-    let tx = svgViewBox.x + svgViewBox.width;
-    let ty = svgViewBox.y;
+    let tx = 0;
+    let ty = 0;
     let widest = 0;
     let paddingY = 5;
 
@@ -157,7 +159,8 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
       if (t.layout.width > widest) widest = t.layout.width;
     });
 
-    this.extraWidth = tx + widest + paddingY - svgViewBox.x - svgViewBox.width;
+    this.basePosition = { x: svgViewBox.x + svgViewBox.width, y: svgViewBox.y };
+    this.extraWidth = tx + widest + paddingY;
   }
 
   /**
@@ -876,8 +879,10 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
             style={{
               //backgroundColor: "#F0F08080",
               position: "absolute",
-              top: 0,
-              left: 0,
+              top: Animated.multiply(this.diagramScale,
+                this.testLayout.basePosition.y),
+              left: Animated.multiply(this.diagramScale,
+                this.testLayout.basePosition.x),
               flexGrow: 0,
               flexShrink: 0,
               width: this.svgViewBox.width,
@@ -962,9 +967,14 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                   if (t.draggable) {
                     t.draggable.spring({
                       toValue: {
-                        x: dropLocation.location.x - location.x,
+                        x: dropLocation.location.x - location.x
+                          - this.testLayout.basePosition.x
+                            / this.diagramScaleLast,
                         y: dropLocation.location.y - location.y
-                          + this.scrollOffset.y / this.diagramScaleLast,
+                          + this.scrollOffset.y
+                            / this.diagramScaleLast
+                          - this.testLayout.basePosition.y
+                            / this.diagramScaleLast,
                       },
                       speed: 100,
                     },
