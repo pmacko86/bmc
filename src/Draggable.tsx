@@ -124,8 +124,8 @@ extends React.Component<DraggableProps, DraggableState> {
     for (let i = 0; i < dropLocations.length; i++) {
       let dlx = dropLocations[i].x * this.dropLocationScale + relativeX;
       let dly = dropLocations[i].y * this.dropLocationScale + relativeY;
-      let dlw = dropLocations[i].width * this.scale;
-      let dlh = dropLocations[i].height * this.scale;
+      let dlw = dropLocations[i].width * this.dropLocationScale;
+      let dlh = dropLocations[i].height * this.dropLocationScale;
 
       if (this.props.reverseScaleDropLocation) {
         let midpointX = dlx + dlw / 2;

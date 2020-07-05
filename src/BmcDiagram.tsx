@@ -48,13 +48,26 @@ type XY = {
 
 
 /**
+ * Border and margin size.
+ */
+type BorderSize = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+
+/**
  * The layout mechanism for test components
  */
 export abstract class BmcTestLayout {
 
   basePosition: XY;
+  borderSize: BorderSize;
   extraHeight: number;
   extraWidth: number;
+  marginSize: BorderSize;
   scale: boolean;
   supportsScroll: boolean;
 
@@ -63,8 +76,10 @@ export abstract class BmcTestLayout {
    */
   constructor() {
     this.basePosition = { x: 0, y: 0 };
+    this.borderSize = { left: 0, top: 0, right: 0, bottom: 0 };
     this.extraWidth = 0;
     this.extraHeight = 0;
+    this.marginSize = { left: 0, top: 0, right: 0, bottom: 0 };
     this.scale = true;
     this.supportsScroll = false;
   }
@@ -78,7 +93,7 @@ export abstract class BmcTestLayout {
    * Handle a test component being removed from the test repository
    */
   handleComponentRemoved(texts: SvgText[], index: number,
-    callback?: () => void): void {
+    alreadyRemoved: boolean[], callback?: () => void): void {
     if (callback) {
       callback();
     }
@@ -131,15 +146,18 @@ export class BmcTestLayoutMouseBasic extends BmcTestLayout {
 
 
 /**
- * Test layouts: Basic mouse interface with scrolling
+ * Test layouts: Basic touch interface with scrolling
  */
-export class BmcTestLayoutMouseScroll extends BmcTestLayout {
+export class BmcTestLayoutTouchScroll extends BmcTestLayout {
 
   /**
    * The constructor
    */
   constructor() {
     super();
+    this.borderSize = { left: 7, top: 2, right: 5, bottom: 8 };
+    this.marginSize = { left: 0, top: 0, right: 10, bottom: 0 };
+    this.scale = false;
     this.supportsScroll = true;
   }
 
@@ -148,29 +166,30 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
    */
   doLayout(texts: SvgText[], svgViewBox: LayoutRectangle) {
 
-    let tx = 0;
-    let ty = 0;
+    let tx = this.borderSize.left;
+    let ty = this.borderSize.top + 3;
     let widest = 0;
+    let paddingX = 20;
     let paddingY = 5;
 
     texts.forEach(t => {
       if (t.layout === undefined) return;
 
       t.testLocation = { x: tx, y: ty };
-      ty += t.layout.height + paddingY;
+      ty += t.layout.height + paddingY + this.borderSize.top
+        + this.borderSize.bottom;
       if (t.layout.width > widest) widest = t.layout.width;
     });
 
     this.basePosition = { x: svgViewBox.x + svgViewBox.width, y: svgViewBox.y };
-    this.extraWidth = tx + widest + paddingY;
-    this.scale = false;
+    this.extraWidth = tx + widest + paddingX + this.borderSize.bottom;
   }
 
   /**
    * Handle a test component being removed from the test repository
    */
   handleComponentRemoved(texts: SvgText[], index: number,
-    callback?: () => void): void {
+    alreadyRemoved: boolean[], callback?: () => void): void {
     if (index + 1 >= texts.length) {
       if (callback) {
         callback();
@@ -178,8 +197,23 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
       return;
     }
 
+    let nextIndex = index + 1;
+    while (nextIndex < texts.length) {
+      let text = texts[nextIndex];
+      if (text.draggable && text.testLocation && !alreadyRemoved[nextIndex]) {
+        break;
+      }
+      nextIndex++;
+    }
+    if (nextIndex >= texts.length) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
     let textCurrent = texts[index];
-    let textNext = texts[index + 1];
+    let textNext = texts[nextIndex];
     if (!textCurrent.testLocation || !textNext.testLocation) {
       if (callback) {
         callback();
@@ -191,7 +225,7 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
     let last: SvgText | null = null;
     for (let i = index + 1; i < texts.length; i++) {
       let text = texts[i];
-      if (text.draggable && text.testLocation) {
+      if (text.draggable && text.testLocation && !alreadyRemoved[i]) {
         last = text;
       }
     }
@@ -204,7 +238,7 @@ export class BmcTestLayoutMouseScroll extends BmcTestLayout {
 
     for (let i = index + 1; i < texts.length; i++) {
       let text = texts[i];
-      if (text.draggable && text.testLocation) {
+      if (text.draggable && text.testLocation && !alreadyRemoved[i]) {
         if (text !== last) {
           text.draggable.spring({
             toValue: {
@@ -341,6 +375,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     this.texts = [];
     this.exemptedTexts = [];
     for (let i = 0; i < allTexts.length; i++) {
+      if (allTexts[i].fontSize < 3) {
+        continue;
+      }
       if (!this.isExempted(allTexts[i].text)) {
         this.texts.push(allTexts[i]);
       }
@@ -373,7 +410,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     this.diagramTranslate = new Animated.ValueXY();
     this.diagramMaxHeight = new Animated.Value(1000);
 
-    this.testLayout = new BmcTestLayoutMouseScroll();
+    this.testLayout = new BmcTestLayoutTouchScroll();
   }
 
 
@@ -574,7 +611,13 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
    */
   handleSvgTextComponentLayout(text: SvgText, layout: LayoutRectangle) {
     if (this.props.testMode && this.svgViewBox) {
-      if (this.texts.map(t => !!t.layout).reduce((t, c) => t && c, true)) {
+      /*let count = this.texts.map(t => !!t.layout)
+        .reduce((t, c) => c ? t + 1 : t, 0);
+      if (count === 48) {
+        console.log(this.texts.map(t => !!t.layout));
+        console.log(this.texts[42]);
+      }*/
+      if (this.texts.map(t => !!t.layout).reduce((c, t) => t && c, true)) {
         // All layouts are now filled in
         this.prepareTestComponents();
         this.doTestLayout();
@@ -939,7 +982,24 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
               }
             }
 
-            let myScale = new Animated.Value(1);
+            let myScale
+              = new Animated.Value(1);
+            let myPaddingTop
+              = new Animated.Value(this.testLayout.borderSize.top);
+            let myPaddingBottom
+              = new Animated.Value(this.testLayout.borderSize.bottom);
+            let myPaddingLeft
+              = new Animated.Value(this.testLayout.borderSize.left);
+            let myPaddingRight
+              = new Animated.Value(this.testLayout.borderSize.right);
+            let backgroundColorOpacity = new Animated.Value(50);
+            let backgroundColor = backgroundColorOpacity.interpolate({
+                inputRange: [0, 100],
+                outputRange: [
+                  'rgba(200, 200, 200, 0)',
+                  'rgba(200, 200, 200, 1)'
+                ]
+            });
 
             return (
               <Draggable
@@ -991,15 +1051,37 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                       toValue: this.diagramScaleLast / this.testScaleLast,
                       speed: 100,
                     }).start();
+                    Animated.spring(myPaddingTop, {
+                      toValue: 0,
+                      speed: 100,
+                    }).start();
+                    Animated.spring(myPaddingBottom, {
+                      toValue: 0,
+                      speed: 100,
+                    }).start();
+                    Animated.spring(myPaddingLeft, {
+                      toValue: 0,
+                      speed: 100,
+                    }).start();
+                    Animated.spring(myPaddingRight, {
+                      toValue: 0,
+                      speed: 100,
+                    }).start();
+                    Animated.spring(backgroundColorOpacity, {
+                      toValue: 0,
+                      speed: 100,
+                    }).start();
                     t.draggable.spring({
                       toValue: {
                         x: dropLocation.location.x * d - location.x
                           - this.testLayout.basePosition.x * d
+                          - this.testLayout.marginSize.left
                           - (t.layout ? t.layout.width : 0) * (1 - d) / 2,
                         y: dropLocation.location.y * d - location.y
                           + this.scrollOffset.y * d
                             / this.diagramScaleLast
                           - this.testLayout.basePosition.y * d
+                          - this.testLayout.marginSize.top
                           - (t.layout ? t.layout.height : 0) * (1 - d) / 2,
                       },
                       speed: 100,
@@ -1013,7 +1095,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                       });
 
                       this.testLayout.handleComponentRemoved(this.texts,
-                        index, () => this.setState({}));
+                        index, this.state.correctTextLocation,
+                        () => this.setState({}));
                     });
                   }
                   else {
@@ -1030,6 +1113,16 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 {this.state.hasTestLayouts &&
                   <Animated.View
                     style={{
+                      backgroundColor: backgroundColor,
+                      //filter: "blur(10px)",
+                      paddingTop: myPaddingTop,
+                      paddingBottom: myPaddingBottom,
+                      paddingLeft: myPaddingLeft,
+                      paddingRight: myPaddingRight,
+                      marginTop: this.testLayout.marginSize.top,
+                      marginBottom: this.testLayout.marginSize.bottom,
+                      marginLeft: this.testLayout.marginSize.left,
+                      marginRight: this.testLayout.marginSize.right,
                       transform: [{
                         scale: myScale,
                       }]
