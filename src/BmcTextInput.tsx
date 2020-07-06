@@ -15,6 +15,7 @@ import STYLES from './Styles';
 
 type BmcTextInputProps = {
   allowBackspace?: boolean;
+  allowSynonyms?: boolean;
   autoFocus?: boolean;
   displayAllItems?: boolean;
   displayAllTextInItem?: boolean;
@@ -97,6 +98,7 @@ extends React.Component<BmcTextInputProps, BmcTextInputState> {
         if (r != null && this.elements[i]) this.elements[i].input = r;
       }}
       allowBackspace={this.props.allowBackspace}
+      allowSynonyms={this.props.allowBackspace}
       autoFocus={this.props.autoFocus && this.state.index === i}
       correctStyle={isHeading
         ? [headingStyle, this.props.correctStyle] : [this.props.correctStyle] }

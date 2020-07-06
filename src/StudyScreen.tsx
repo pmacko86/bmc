@@ -59,6 +59,7 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
             <BmcDiagram book={bookName} />
             <BmcTextInput
               allowBackspace={true}
+              allowSynonyms={true}
               displayAllItems={true}
               displayAllTextInItem={true}
               everythingEditable={true}

@@ -87,6 +87,7 @@ extends React.Component<TestScreenProps, TestScreenState> {
             >
             <BmcTextInput
               allowBackspace={false}
+              allowSynonyms={true}
               autoFocus={true}
               displayAllItems={false}
               displayAllTextInItem={false}

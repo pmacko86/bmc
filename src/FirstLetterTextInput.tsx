@@ -18,14 +18,12 @@ import {
 // TODO: Redo this from byLetter to bySegment, so that it is more
 // flexible. This way, also backspace would work better, since currently
 // it has problems if the word contains "-" and it is byLetter.
-
-// TODO: Optional words, e.g. "the"
-// TODO: Numbers and numerals should be typed interchangeably
 // TODO: Account for keyboard distance, especially on small devices
 
 
 type FirstLetterTextInputProps = {
   allowBackspace?: boolean;
+  allowSynonyms?: boolean;
   autoFocus?: boolean;
   displayAll?: boolean;
   readOnly?: boolean;
@@ -67,6 +65,113 @@ type FirstLetterTextInputDoNextWordResult = {
   wasCorrect: boolean;
   reachedEnd: boolean;
 }
+
+
+type Synonyms = {
+  synonyms: string[];
+  unidirectional?: boolean;
+}
+
+
+const FIRST_LETTER_SYNONYMS: Synonyms[] = [
+  {
+    synonyms: ["0", "zero"],
+  },
+  {
+    synonyms: ["1", "one"],
+  },
+  {
+    synonyms: ["2", "two"],
+  },
+  {
+    synonyms: ["3", "three"],
+  },
+  {
+    synonyms: ["4", "four"],
+  },
+  {
+    synonyms: ["5", "five"],
+  },
+  {
+    synonyms: ["6", "six"],
+  },
+  {
+    synonyms: ["7", "seven"],
+  },
+  {
+    synonyms: ["8", "eight"],
+  },
+  {
+    synonyms: ["9", "nine"],
+  },
+  {
+    synonyms: ["10", "ten"],
+  },
+  {
+    synonyms: ["11", "eleven"],
+  },
+  {
+    synonyms: ["12", "twelve"],
+  },
+  {
+    synonyms: ["13", "thirteen"],
+  },
+  {
+    synonyms: ["14", "fourteen"],
+  },
+  {
+    synonyms: ["I", "1st", "first"],
+    unidirectional: true,
+  },
+  {
+    synonyms: ["II", "2nd", "second"],
+    unidirectional: true,
+  },
+  {
+    synonyms: ["III", "3rd", "third"],
+    unidirectional: true,
+  },
+  {
+    synonyms: ["IV", "4th", "fourth"],
+    unidirectional: true,
+  },
+  {
+    synonyms: ["1st", "first"],
+  },
+  {
+    synonyms: ["2nd", "second"],
+  },
+  {
+    synonyms: ["3rd", "third"],
+  },
+  {
+    synonyms: ["4th", "fourth"],
+  },
+  {
+    synonyms: ["5th", "fifth"],
+  },
+  {
+    synonyms: ["6th", "sixth"],
+  },
+  {
+    synonyms: ["7th", "seventh"],
+  },
+  {
+    synonyms: ["8th", "eighth"],
+  },
+  {
+    synonyms: ["9th", "ninth"],
+  },
+  {
+    synonyms: ["10th", "tenth"],
+  },
+  {
+    synonyms: ["11th", "eleventh"],
+  },
+  {
+    synonyms: ["12th", "twelfth"],
+  },
+];
 
 
 export default class FirstLetterTextInput
@@ -281,12 +386,60 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
       = this.findNextCharacter(wordLowerCase, nextWordCharacterIndex + 1);
 
 
-    // Determine whether the input is correct and mark the state
-    // accordingly.
+    // Determine whether the input is correct.
 
     let matches = key === nextWordCharacter || nextWordCharacter === "";
+
+
+    // Check the synonyms if we are at the beginning of the word.
+
+    let forceAdvanceToNextWord = false;
+    if (!matches && charIndex === 0 && this.props.allowSynonyms) {
+      for (let i = 0; i < FIRST_LETTER_SYNONYMS.length && !matches; i++) {
+        const synonyms = FIRST_LETTER_SYNONYMS[i];
+        for (let j = 0;
+          j < (synonyms.unidirectional ? 1 : synonyms.synonyms.length)
+            && !matches;
+          j++) {
+
+          // See if the synonym matches the current word.
+
+          const m = synonyms.synonyms[j].toLowerCase();
+          if (wordLowerCase.substr(nextWordCharacterIndex).startsWith(m)
+            && (wordLowerCase.length === nextWordCharacterIndex + m.length
+              || !wordLowerCase.charAt(nextWordCharacterIndex + m.length)
+                .match(/[a-z0-9]/i))) {
+
+            // Check to make sure we matched the whole word
+
+            let [n] = this.findNextCharacter(wordLowerCase,
+              nextWordCharacterIndex + m.length);
+            if (n !== "") continue;
+
+            // Now try to match the key press with the other synonyms.
+
+            for (let k = 0; k < synonyms.synonyms.length && !matches; k++) {
+              if (k === j) continue;
+
+              // See if the key press matches.
+
+              const w = synonyms.synonyms[k].toLowerCase();
+              if (key === w.charAt(0)) {
+                matches = true;
+                forceAdvanceToNextWord = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+
+    // Mark the state accordingly.
+
     this.updateCorrectState(correctState, index, matches, charIndex,
-      nextNextWordCharacterIndex);
+      forceAdvanceToNextWord ? -1 : nextNextWordCharacterIndex);
 
     triggeredState[index] = true;
     if (!matches && word.showOnlyIfTriggered) {
@@ -297,7 +450,7 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
     // Advance to the next word or a part of the word.
 
     let nextWord = false;
-    if (word.byLetter) {
+    if (word.byLetter && !forceAdvanceToNextWord) {
       if (nextNextWordCharacter === "") {
         index++;
         charIndex = 0;
@@ -534,13 +687,15 @@ extends React.Component<FirstLetterTextInputProps, FirstLetterTextInputState> {
             if (!this.words[j].showOnlyIfTriggered) break;
             if (j === this.state.index) shiftLeft = true;
           }
+          let last = i === this.words.length - 1;
           return (
             <Text key={i}
               selectable={this.props.displayAll}
               style={[
                 {
                   color: this.props.displayAll ? "inherit" : "#00000000",
-                  marginLeft: shiftLeft && !readOnly ? -5 : 0
+                  marginLeft: shiftLeft && !readOnly ? -5 : 0,
+                  minWidth: last ? 5 : undefined,
                 },
                 this.props.displayAll ? style.unseen : null,
                 this.props.displayAll ? this.props.unseenStyle : null,
