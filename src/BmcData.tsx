@@ -3171,12 +3171,12 @@ const BMC_REVELATION : BmcBook = {
     {
       chapter: 2,
       part: null,
-      label: "Churches 1: ESPT (Ephesus, Smyrna, Pergamum, Thyatira)"
+      label: "7 churches 1: ESPT (Ephesus, Smyrna, Pergamum, Thyatira)"
     },
     {
       chapter: 3,
       part: null,
-      label: "Churches 2: SPL (Sardis, Philadelphia, Laodicea)"
+      label: "7 churches 2: SPL (Sardis, Philadelphia, Laodicea)"
     },
     {
       chapter: 4,
