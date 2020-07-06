@@ -48,7 +48,7 @@ extends React.Component<StudyScreenProps, StudyScreenState> {
           onBackIfWeb={() => this.props.navigation.navigate("BookAction", { book: bookName })}
           />
         <InstructionsBar
-          text={"Please type just the first letter, but spell out acronyms:"} />
+          text={"Type just the first letter; spell out everything in all caps:"} />
         <MyKeyboardAvoidingView>
           <ScrollView
             style={{
