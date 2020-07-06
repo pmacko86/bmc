@@ -21,6 +21,7 @@ type XY = {
 
 
 type DraggableProps = {
+  adjustDropLocationToScale?: boolean;
   disabled?: boolean;
   dropLocation?: LayoutRectangle | LayoutRectangle[];
   dropLocationScale?: number | Animated.Value,
@@ -29,7 +30,6 @@ type DraggableProps = {
   onDragStop?: () => void;
   onDropToLocation?: (index: number) => void;
   onAfterInvalidDrop?: () => void;
-  reverseScaleDropLocation?: boolean;
   scale?: number | Animated.Value;
   style: ViewStyle;
 }
@@ -101,9 +101,12 @@ extends React.Component<DraggableProps, DraggableState> {
    * @param [number] gestureY the Y coordinate of the release
    * @param [number] relativeX the delta to apply to the X coordinate
    * @param [number] relativeY the delta to apply to the Y coordinate
+   * @param [number] draggableWidth the width of the component
+   * @param [number] draggableHeight the height of the component
    */
   onRelease(gestureX: number, gestureY: number,
-    relativeX: number, relativeY: number) {
+    relativeX: number, relativeY: number,
+    draggableWidth: number, draggableHeight: number) {
 
     if (!this.props.dropLocation
       || (Array.isArray(this.props.dropLocation)
@@ -127,13 +130,24 @@ extends React.Component<DraggableProps, DraggableState> {
       let dlw = dropLocations[i].width * this.dropLocationScale;
       let dlh = dropLocations[i].height * this.dropLocationScale;
 
-      if (this.props.reverseScaleDropLocation) {
+      if (this.props.adjustDropLocationToScale) {
         let midpointX = dlx + dlw / 2;
         let midpointY = dly + dlh / 2;
         dlw = dlw / this.dropLocationScale;
         dlh = dlh / this.dropLocationScale;
         dlx = midpointX - dlw / 2;
         dly = midpointY - dlh / 2;
+      }
+
+      if (this.props.adjustDropLocationToScale
+        && this.dropLocationScale < this.scale) {
+        // Adjust for the bottom-right corner
+        let extraW = draggableWidth * (this.scale - this.dropLocationScale);
+        let extraH = draggableHeight * (this.scale - this.dropLocationScale);
+        dlx -= extraW;
+        dlw += extraW;
+        dly -= extraH;
+        dlh += extraH;
       }
 
       if (gx >= dlx && gx < dlx + dlw && gy >= dly && gy < dly + dlh) {
@@ -195,12 +209,12 @@ extends React.Component<DraggableProps, DraggableState> {
               if (this.props.dropLocationRelative) {
                 this.props.dropLocationRelative.measure(
                   (x, y, w, h, px, py) => {
-                    this.onRelease(gx, gy, px + dx, py + dy);
+                    this.onRelease(gx, gy, px + dx, py + dy, textW, textH);
                   }
                 );
               }
               else {
-                this.onRelease(gx, gy, dx, dy);
+                this.onRelease(gx, gy, dx, dy, textW, textH);
               }
             });
           }
