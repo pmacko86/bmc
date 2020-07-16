@@ -184,11 +184,18 @@ export default class SvgText {
   textSpans: SvgTextSpan[];
 
   testLocation?: XY;
+  testAlternative?: SvgText;
+  diagramAlternative?: SvgText;
   layout?: LayoutRectangle;      // will be filled out asynchronously
   draggable?: Draggable | null;
 
   index: number;                 // will be filled out asynchronously
   equivalents: SvgText[];        // will be filled out asynchronously
+
+  subTextParent?: SvgText;
+  subTextFrom: number;
+  subTextTo: number;
+  subTexts: SvgText[];
 
 
   /**
@@ -208,8 +215,24 @@ export default class SvgText {
     this.index = -1;
     this.equivalents = [];
 
+    this.textSpans = [];
+    this.fontSize = DEFAULT_FONT_SIZE;
+    this.color = "black";
+    this.subTextFrom = 0;
+    this.subTextTo = 0;
+    this.subTexts = [];
 
-    // Extract the individual text spans
+    this.extractTextSpans(svg);
+    this.finishInitialization();
+  }
+
+
+  /**
+   * Extract text spans
+   *
+   * @oaram [{[key: string]: any}] svg the SVG
+   */
+  extractTextSpans(svg: {[key: string]: any}) {
 
     const locationTransform
       = SvgTransform.fromTranslate(-this.location.x, -this.location.y);
@@ -270,7 +293,13 @@ export default class SvgText {
     };
 
     fn(svg, null, svg.attrs);
+  }
 
+
+  /**
+   * Finish initialization after the text spans are available
+   */
+  finishInitialization() {
 
     // Base these on text spans
 
@@ -295,6 +324,9 @@ export default class SvgText {
         this.layout.height =
           Math.max(this.layout.height, t.layout.y + t.layout.height);
       });
+    }
+    else {
+      this.layout = undefined;
     }
   }
 
@@ -331,6 +363,49 @@ export default class SvgText {
     let r = Object.create(this);
     r.location = { x: this.location.x, y: this.location.y };
     r.textSpans = this.textSpans.slice(0);
+    return r;
+  }
+
+
+  /**
+   * Create a sub-text
+   *
+   * @param [number] from the start character.
+   * @param [number] length the length.
+   * @return [SvgText] the clone.
+   */
+  subText(from: number, length: number = -1): SvgText {
+    if (this.textSpans.length !== 1) {
+      console.error("Splitting SvgText with more than one span is unsupported");
+      throw new Error("Not implemented");
+    }
+
+    let t = new SvgTextSpan(this.textSpans[0].text.substr(from, length),
+      this.textSpans[0].attrs, this.textSpans[0].transform);
+    t.textLength = undefined;
+
+    let r = Object.create(this);
+    r.location = { x: this.location.x, y: this.location.y };
+    r.text = t.text;
+    r.textSpans = [t];
+
+    r.equivalents = [];
+    r.index = -1;
+
+    r.subTextParent = this;
+    r.subTextFrom = from;
+    r.subTextTo = length < 0 ? this.text.length : (from + length);
+    r.subTexts = [];
+
+    this.subTexts.push(r);
+    this.subTexts.sort((a, b) => {
+      let r = a.subTextFrom - b.subTextFrom;
+      if (r !== 0) return r;
+      return a.subTextTo - b.subTextTo;
+    });
+
+    r.finishInitialization();
+
     return r;
   }
 

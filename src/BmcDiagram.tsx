@@ -386,6 +386,8 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       }
     }
 
+    this.prepareTestComponentsBeforeMeasure();
+
     let correctTextLocation = new Array<boolean>(this.texts.length);
     for (let i = 0; i < correctTextLocation.length; i++) {
       correctTextLocation[i] = !this.props.testMode;
@@ -415,18 +417,127 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
 
   /**
-   * Prepare the test components
+   * Prepare the test components - before we measure them
    */
-  prepareTestComponents() {
+  prepareTestComponentsBeforeMeasure() {
     if (!this.props.testMode || !this.svgViewBox) return;
+
+
+    // Split chapter number sequences into individual chapters.
+
+    let subTexts: SvgText[] = [];
+    for (let i = 0; i < this.texts.length; i++) {
+      let a = this.texts[i];
+      if (a.color === "red"
+        || a.color.match(/^rgb\(2..,.*/)  // red
+        || a.color.match(/^#[c-fC-F].*/)  // red
+        || a.color === "#0f4c28" /* cyan */
+        || a.color === "#005c5d" /* cyan */) {
+
+        // Must contain more than one thing, or if it is just one thing, we
+        // need to fix it using a sub-text.
+        if (!(a.text.includes(" ") || a.text.includes(","))) continue;
+
+        // TODO Support multiple text spans (Exodus, Mark, Acts)
+        if (a.textSpans.length !== 1) continue;
+
+        // Split the text
+        let splitWithDelimiters = a.text.split(/([, ]+)/);
+        let parts: string[] = [];
+        for (let j = 0; j < splitWithDelimiters.length; j++) {
+          if (parts.length === 0) {
+            parts.push(splitWithDelimiters[j]);
+          }
+          else {
+            if (splitWithDelimiters[j].startsWith(" ")
+             || splitWithDelimiters[j].startsWith(",")) {
+              parts[parts.length - 1] += splitWithDelimiters[j];
+            }
+            else {
+              parts.push(splitWithDelimiters[j]);
+            }
+          }
+        }
+
+        if (parts.length <= 0) continue;
+        let lastPart = parts[parts.length - 1];
+        if (!(lastPart.endsWith(",") || parts.length > 1)) continue;
+
+        // Create sub-texts
+        let start = 0;
+        for (let j = 0; j < parts.length; j++) {
+          let n = a.subText(start, parts[j].length);
+          subTexts.push(n);
+          let t = n.text.replace(/[, ]+$/, '');
+          if (t !== n.text) {
+            let testAlternative = a.subText(start, t.length);
+            testAlternative.diagramAlternative = n;
+            n.testAlternative = testAlternative;
+            subTexts.push(testAlternative);
+          }
+          start += parts[j].length;
+        }
+      }
+    }
+
+    this.texts.push(...subTexts);
+  }
+
+
+  /**
+   * Prepare the test components - after we measure them
+   */
+  prepareTestComponentsAfterMeasure() {
+    if (!this.props.testMode || !this.svgViewBox) return;
+
+    let i, j;
+    let deleted = Array(this.texts.length).fill(false);
+
+
+    // Finish sub-texts
+
+    for (i = 0; i < this.texts.length; i++) {
+      let a = this.texts[i];
+      if (a.subTexts.length <= 0) continue;
+
+      deleted[i] = true;
+
+
+      // The following assumes that we properly measured everything
+
+      // TODO Account for letter spacing (e.g. for 2 Chronicles)
+
+      let dx = new Map<number, number>();
+      dx.set(0, 0);
+      for (j = 0; j < a.subTexts.length; j++) {
+        let b = a.subTexts[j];
+        if (!b.layout) continue;
+
+        let startX = dx.get(b.subTextFrom);
+        if (startX !== undefined) {
+          dx.set(b.subTextTo, startX + b.layout.width);
+          b.location.x += startX;
+        }
+      }
+
+
+      // TODO Handle letter spacing through computing textLength appropriately
+    }
+
+
+    // Remove components with test alternatives
+
+    for (i = 0; i < this.texts.length; i++) {
+      let a = this.texts[i];
+      if (!a.testAlternative) continue;
+
+      deleted[i] = true;
+    }
 
 
     // Remove duplicate elements and other elements worth removing
 
-    let deleted = Array(this.texts.length).fill(false);
-
-    var i, j;
-    var done = false;
+    let done = false;
     while (!done) {
       done = true;
 
@@ -493,6 +604,17 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
           if (Math.abs(a.layout.y - b.layout.y) < 1 && a.layout.x < b.layout.x){
             if (Math.abs(a.layout.x + a.layout.width - b.layout.x) <= 2) {
+
+              // Hack: Do not merge chapter numbers
+              if (a.color === "red"
+                || a.color.match(/^rgb\(2..,.*/)  // red
+                || a.color.match(/^#[c-fC-F].*/)  // red
+                || a.color === "#005c5d" /* cyan */) {
+                console.warn("Not merging: \"" + a.text
+                  + "\" and \"" + b.text + "\"");
+                continue;
+              }
+
               a.merge(b);
               deleted[j] = true;
               done = false;
@@ -619,7 +741,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
       }*/
       if (this.texts.map(t => !!t.layout).reduce((c, t) => t && c, true)) {
         // All layouts are now filled in
-        this.prepareTestComponents();
+        this.prepareTestComponentsAfterMeasure();
         this.doTestLayout();
       }
     }
@@ -887,7 +1009,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
                 }}>
                 {(!this.props.testMode || this.state.hasTestLayouts)
                   && <SvgTextComponent
-                    text={t}
+                    text={t.diagramAlternative || t}
                     asHint={this.props.testMode && this.props.testHints
                       && !this.state.correctTextLocation[index]}
                     />}
