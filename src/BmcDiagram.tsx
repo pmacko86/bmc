@@ -445,6 +445,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         let splitWithDelimiters = a.text.split(/([, ]+)/);
         let parts: string[] = [];
         for (let j = 0; j < splitWithDelimiters.length; j++) {
+          if (splitWithDelimiters[j] === "") continue;
           if (parts.length === 0) {
             parts.push(splitWithDelimiters[j]);
           }
@@ -735,11 +736,12 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
     if (this.props.testMode && this.svgViewBox) {
       /*let count = this.texts.map(t => !!t.layout)
         .reduce((t, c) => c ? t + 1 : t, 0);
-      if (count === 48) {
+      if (count === 56) {
         console.log(this.texts.map(t => !!t.layout));
-        console.log(this.texts[42]);
+        console.log(this.texts[53]);
       }*/
       if (this.texts.map(t => !!t.layout).reduce((c, t) => t && c, true)) {
+
         // All layouts are now filled in
         this.prepareTestComponentsAfterMeasure();
         this.doTestLayout();
