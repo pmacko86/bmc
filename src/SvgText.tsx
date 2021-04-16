@@ -63,7 +63,14 @@ class SvgTextSpan {
 
     this.text = text;
     this.attrs = attrs;
+
+
+    // Initialize transform-related attributes (to fix the compiler warnings)
+
     this.transform = transform;
+    this.origin = { x: 0, y: 0 };
+    this.scale = 0;
+    this.fontSizeScaled = 0;
 
 
     // Derrived attributes
@@ -73,13 +80,12 @@ class SvgTextSpan {
     this.fontWeight = this.attrs.fontWeight || 400 /* normal */;
     this.fontSize = this.attrs.fontSize
       ? parseFloat(this.attrs.fontSize) : DEFAULT_FONT_SIZE;
-    const vectorOne = this.transform.apply(1, 0);
-    this.origin = this.transform.apply(0, 0);
-    this.scale = Math.sqrt((vectorOne.x - this.origin.x)**2
-      + (vectorOne.y - this.origin.y)**2);
-    this.fontSizeScaled = this.fontSize * this.scale;
-    this.origin.y -= this.fontSizeScaled;
-    this.textLength = this.attrs.textLength;
+      this.textLength = this.attrs.textLength;
+
+
+    // The transform
+
+    this.setTransform(transform);
 
 
     // If we have textLength, take advantage of it.
@@ -107,6 +113,22 @@ class SvgTextSpan {
    */
   get location(): XY {
     return this.origin;
+  }
+
+
+  /**
+   * Set (update) the transform.
+   *
+   * @param [SvgTransform] transform the new transform.
+   */
+  setTransform(transform: SvgTransform) {
+    this.transform = transform;
+    const vectorOne = this.transform.apply(1, 0);
+    this.origin = this.transform.apply(0, 0);
+    this.scale = Math.sqrt((vectorOne.x - this.origin.x)**2
+      + (vectorOne.y - this.origin.y)**2);
+    this.fontSizeScaled = this.fontSize * this.scale;
+    this.origin.y -= this.fontSizeScaled;
   }
 
 
@@ -196,6 +218,9 @@ export default class SvgText {
   subTextFrom: number;
   subTextTo: number;
   subTexts: SvgText[];
+
+  premeasure?: SvgText;
+  onPremeasure?: (layout: LayoutRectangle) => void;
 
 
   /**
@@ -375,19 +400,12 @@ export default class SvgText {
    * @return [SvgText] the clone.
    */
   subText(from: number, length: number = -1): SvgText {
-    if (this.textSpans.length !== 1) {
-      console.error("Splitting SvgText with more than one span is unsupported");
-      throw new Error("Not implemented");
-    }
-
-    let t = new SvgTextSpan(this.textSpans[0].text.substr(from, length),
-      this.textSpans[0].attrs, this.textSpans[0].transform);
-    t.textLength = undefined;
 
     let r = Object.create(this);
     r.location = { x: this.location.x, y: this.location.y };
-    r.text = t.text;
-    r.textSpans = [t];
+    r.text = this.text.substr(from, length);
+    r.textSpans = [];
+    r.premeasure = undefined;
 
     r.equivalents = [];
     r.index = -1;
@@ -397,14 +415,83 @@ export default class SvgText {
     r.subTextTo = length < 0 ? this.text.length : (from + length);
     r.subTexts = [];
 
+    let pos = 0
+    let firstSpan = -1
+    let shiftLeft = 0
+
+    for (let i = 0; i < this.textSpans.length; i++) {
+      let span = this.textSpans[i];
+      let f = r.subTextFrom - pos;
+      let t = r.subTextTo - pos;
+
+      let currentPos = pos;
+      let currentShiftLeft = shiftLeft;
+
+      pos += span.text.length;
+
+      if (t <= 0) break;
+      if (f >= span.text.length || t <= f) {
+        // If we are skipping a span, then shift everything else left.
+        if (span.textLength) {
+          shiftLeft += span.textLength;
+        }
+        else {
+          if (this.textSpans.length > 1) {
+            console.warn("A span in \"" + this.text +
+              "\" does not have textLength");
+          }
+        }
+        continue;
+      }
+      f = Math.max(f, 0);
+      t = Math.min(t, span.text.length);
+
+      if (firstSpan < 0) firstSpan = i;
+
+      /*if (this.textSpans.length > 0) {
+        console.log([this, this.text, from, length, i,
+          "f,t", f, t, span.text.substr(f, t - f)])
+      }*/
+
+      let newSpan = new SvgTextSpan(span.text.substr(f, t - f), span.attrs,
+        span.transform.then(SvgTransform.fromTranslate(-currentShiftLeft, 0)));
+      newSpan.textLength = undefined;
+      r.textSpans.push(newSpan);
+
+
+      // If the subtext starts with a partial span and has more than one span,
+      // then we need to pre-measure the first partial span and then use its
+      // layout to update the transforms on the subsequent spans.
+
+      if (firstSpan === i && f > 0 && pos < r.subTextTo) {
+        let skip = 0;
+        if (span.textLength) {
+          skip = span.textLength;
+        }
+        else {
+          if (this.textSpans.length > 1) {
+            console.warn("A span in \"" + this.text +
+              "\" does not have textLength");
+          }
+        }
+        r.premeasure = this.subText(currentPos + f, t - f);
+        r.premeasure.onPremeasure = (layout: LayoutRectangle) => {
+          for (let i = 1; i < r.textSpans.length; i++) {
+            r.textSpans[i].setTransform(r.textSpans[i].transform.then(
+              SvgTransform.fromTranslate(-skip + layout.width, 0)));
+          }
+        };
+      }
+    }
+
+    r.finishInitialization();
+
     this.subTexts.push(r);
     this.subTexts.sort((a, b) => {
       let r = a.subTextFrom - b.subTextFrom;
       if (r !== 0) return r;
       return a.subTextTo - b.subTextTo;
     });
-
-    r.finishInitialization();
 
     return r;
   }

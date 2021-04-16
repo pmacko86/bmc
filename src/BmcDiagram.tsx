@@ -302,6 +302,7 @@ type BmcDiagramState = {
   containerLayout?: LayoutRectangle;
   correctTextLocation: boolean[];
   hasTestLayouts?: boolean;
+  finishedPremeasure?: boolean;
   extraWidth: number;
   testScrollEnabled?: boolean;
 }
@@ -320,6 +321,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   svgViewBox: LayoutRectangle;
   texts: SvgText[];
   exemptedTexts: SvgText[];
+  premeasureTexts?: SvgText[];
 
   testLayout: BmcTestLayout;
   testLayoutSupportsScroll: boolean;
@@ -438,9 +440,6 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         // need to fix it using a sub-text.
         if (!(a.text.includes(" ") || a.text.includes(","))) continue;
 
-        // TODO Support multiple text spans (Exodus, Mark, Acts)
-        if (a.textSpans.length !== 1) continue;
-
         // Split the text
         let splitWithDelimiters = a.text.split(/([, ]+)/);
         let parts: string[] = [];
@@ -480,6 +479,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
         }
       }
     }
+
+    this.premeasureTexts =
+      subTexts.map(t => t.premeasure).filter(t => !!t) as SvgText[];
 
     this.texts.push(...subTexts);
   }
@@ -1258,8 +1260,38 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
           </Animated.View>
         </Animated.ScrollView>
 
+        {/* Pre-measure the necessary text components */}
+        {this.premeasureTexts && this.premeasureTexts.length > 0 &&
+          !this.state.finishedPremeasure &&
+          <View style={{
+            width: 2000,
+            height: 0,
+            overflow: 'hidden',
+            position: 'absolute',
+            left: 0,
+            top: 0,
+          }}>
+            {this.premeasureTexts && this.premeasureTexts.map((t, index) => {
+              return <SvgTextComponent
+                key={index}
+                text={t}
+                onMeasure={layout => {
+                  if (t.onPremeasure) {
+                    t.onPremeasure(layout);
+                  }
+                  if (this.premeasureTexts &&
+                    this.premeasureTexts.map(t => !!t.layout)
+                    .reduce((c, t) => t && c, true)) {
+                    this.setState({finishedPremeasure: true});
+                  }
+                }}/>;
+            })}
+          </View>}
+
         {/* Measure the test components */}
         {this.props.testMode && !this.state.hasTestLayouts &&
+          (this.state.finishedPremeasure || !this.premeasureTexts ||
+            this.premeasureTexts.length === 0) &&
           <View style={{
             width: 2000,
             height: 0,
