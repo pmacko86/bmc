@@ -90,6 +90,13 @@ extends React.Component<SvgTextComponentProps, SvgTextComponentState> {
         width: width,
         height: height,
       }
+      if (span.measuredWidth && span.textLength && span.text.length > 1) {
+        span.computedLetterSpacing = (span.textLength - span.measuredWidth)
+          / (span.text.length - 1);
+        for (let j = 0; j < span.subTextSpans.length; j++) {
+          span.subTextSpans[j].letterSpacing = span.effectiveLetterSpacing();
+        }
+      }
     }
     this.props.text.layout = overall;
     this.setState({

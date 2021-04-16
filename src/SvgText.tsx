@@ -48,8 +48,13 @@ class SvgTextSpan {
   fontWeight: number;
 
   textLength?: number;
-  measuredWidth?: number;
+  letterSpacing?: number;
+  computedLetterSpacing?: number;
+  measuredWidth?: number;      // will be filled out asynchronously
   layout?: LayoutRectangle;    // will be filled out asynchronously
+
+  subTextParentSpan?: SvgTextSpan;
+  subTextSpans: SvgTextSpan[];
 
 
   /**
@@ -63,6 +68,7 @@ class SvgTextSpan {
 
     this.text = text;
     this.attrs = attrs;
+    this.subTextSpans = [];
 
 
     // Initialize transform-related attributes (to fix the compiler warnings)
@@ -145,6 +151,22 @@ class SvgTextSpan {
 
 
   /**
+   * Get the effective letter spacing.
+   *
+   * @return [number] the effective letter spacing.
+   */
+  effectiveLetterSpacing(): number {
+    if (this.letterSpacing !== undefined) {
+      return this.letterSpacing;
+    }
+    if (this.computedLetterSpacing !== undefined) {
+      return this.computedLetterSpacing;
+    }
+    return 0;
+  }
+
+
+  /**
    * Render using React Native (not SVG).
    *
    * @param [any] key the key.
@@ -155,6 +177,8 @@ class SvgTextSpan {
    */
   renderNative(key: any, scale: number = 1,
     ignoreLocation: boolean = false, asHint: boolean = false) {
+
+
     return (
       <Text
         key={key}
@@ -165,11 +189,7 @@ class SvgTextSpan {
             fontFamily: this.fontFamily,
             fontSize: scale * this.fontSizeScaled,
             fontWeight: this.fontWeight === 500 ? "500" : "400", // XXX
-            letterSpacing:
-              this.measuredWidth && this.textLength && this.text.length > 1
-              ? (this.textLength - this.measuredWidth) * scale
-                  / (this.text.length - 1)
-              : 0,
+            letterSpacing: this.effectiveLetterSpacing() * scale,
           },
           !ignoreLocation ? {
             position: "absolute",
@@ -456,6 +476,9 @@ export default class SvgText {
       let newSpan = new SvgTextSpan(span.text.substr(f, t - f), span.attrs,
         span.transform.then(SvgTransform.fromTranslate(-currentShiftLeft, 0)));
       newSpan.textLength = undefined;
+      newSpan.subTextParentSpan = span;
+
+      span.subTextSpans.push(newSpan);
       r.textSpans.push(newSpan);
 
 
@@ -477,6 +500,10 @@ export default class SvgText {
         r.premeasure = this.subText(currentPos + f, t - f);
         r.premeasure.onPremeasure = (layout: LayoutRectangle) => {
           for (let i = 1; i < r.textSpans.length; i++) {
+            // TODO Account for letterSpacing. However, we wouldn't know it
+            // until the parent's layout gets updated through SvgTextComponent's
+            // handleMeasure() method! We may need to fix the transforms and
+            // the measured (!) layout afterwards.
             r.textSpans[i].setTransform(r.textSpans[i].transform.then(
               SvgTransform.fromTranslate(-skip + layout.width, 0)));
           }

@@ -335,6 +335,9 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
   diagramTranslate: Animated.ValueXY;
   diagramMaxHeight: Animated.Value;
 
+  lastLayoutChangeEvent?: LayoutChangeEvent;
+  lastExtraWidth?: number;
+
 
   /**
    * Create an instance of class BmcDiagram.
@@ -508,23 +511,29 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
       // The following assumes that we properly measured everything
 
-      // TODO Account for letter spacing (e.g. for 2 Chronicles)
-
       let dx = new Map<number, number>();
       dx.set(0, 0);
       for (j = 0; j < a.subTexts.length; j++) {
-        let b = a.subTexts[j];
-        if (!b.layout) continue;
+        let t = a.subTexts[j];
+        if (!t.layout) continue;
 
-        let startX = dx.get(b.subTextFrom);
+        let startX = dx.get(t.subTextFrom);
         if (startX !== undefined) {
-          dx.set(b.subTextTo, startX + b.layout.width);
-          b.location.x += startX;
+          let w = t.layout.width;
+          if (t.textSpans.length > 0) {
+            // TODO Properly account for letter spacing (e.g. for 2 Chronicles);
+            // this is a horrible hack that works well only if there is a single
+            // text span. Even if the letter spacing is uniform throughout the
+            // text, the measured layout is a result of a combination of span
+            // layouts that did not take letter spacing into account and those
+            // that did by the virtue of how they are positioned using their
+            // original textLength's.
+            w += t.textSpans[0].effectiveLetterSpacing() * t.text.length
+          }
+          dx.set(t.subTextTo, startX + w);
+          t.location.x += startX;
         }
       }
-
-
-      // TODO Handle letter spacing through computing textLength appropriately
     }
 
 
@@ -899,6 +908,78 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
 
   /**
+   * Handle the layout event.
+   *
+   * @param [LayoutChangeEvent] e the event.
+   */
+  handleLayoutChangeEvent(e: LayoutChangeEvent) {
+    this.lastLayoutChangeEvent = e;
+    if (!this.svgViewBox) return;
+
+    this.lastExtraWidth = this.state.extraWidth;
+
+    let extraWidth = this.state.extraWidth ? this.state.extraWidth : 0;
+    let scale = 1;
+    if (this.testLayout.scale) {
+      let totalWidth = this.svgViewBox.width + extraWidth;
+      scale = e.nativeEvent.layout.width / totalWidth;
+    }
+    else {
+      let remainingWidth = e.nativeEvent.layout.width - extraWidth;
+      if (remainingWidth < 50) remainingWidth = 50;
+      scale = remainingWidth / this.svgViewBox.width;
+    }
+    if (scale > 1) scale = 1;
+
+    let scaledSvgWidth = scale * this.svgViewBox.width;
+    let scaledSvgHeight = 1.0 * scaledSvgWidth
+      * this.svgViewBox.height / this.svgViewBox.width;
+
+    if (scaledSvgHeight > e.nativeEvent.layout.height
+     && e.nativeEvent.layout.height > 0) {
+      scale *= e.nativeEvent.layout.height / scaledSvgHeight;
+      scaledSvgHeight = e.nativeEvent.layout.height;
+      scaledSvgWidth = scale * this.svgViewBox.width;
+    }
+
+    let tx = -this.svgViewBox.width  * (1 - scale) / 2;
+    let ty = -this.svgViewBox.height * (1 - scale) / 2;
+
+    let maxHeight = 0;  // Used only in dislay (not test) mode
+    if (!this.props.testMode) {
+      let totalWidth = this.svgViewBox.width + extraWidth;
+      let totalHeight = this.svgViewBox.height;
+      maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
+    }
+
+    this.diagramScale.setValue(scale);
+    this.diagramScaleLast = scale;
+    if (this.testLayout.scale) {
+      this.testScale.setValue(scale);
+      this.testScaleLast = scale;
+    }
+    this.diagramTranslate.setValue({ x: tx, y: ty });
+    this.diagramMaxHeight.setValue(maxHeight);
+  }
+
+
+  /**
+   * Handler for document update.
+   */
+  componentDidUpdate() {
+
+    // Sometimes we miss layout update due to the layout change event not being
+    // nicely correlated with the extraWidth state change, so fix it up.
+
+    if (this.lastExtraWidth !== this.state.extraWidth) {
+      if (this.lastLayoutChangeEvent !== undefined) {
+        this.handleLayoutChangeEvent(this.lastLayoutChangeEvent);
+      }
+    }
+  }
+
+
+  /**
    * Render the component.
    */
   render() {
@@ -912,52 +993,7 @@ extends React.Component<BmcDiagramProps, BmcDiagramState> {
 
     return (
       <Animated.View
-        onLayout={(e: LayoutChangeEvent) => {
-          if (!this.svgViewBox) return;
-
-          let extraWidth = this.state.extraWidth ? this.state.extraWidth : 0;
-          let scale = 1;
-          if (this.testLayout.scale) {
-            let totalWidth = this.svgViewBox.width + extraWidth;
-            scale = e.nativeEvent.layout.width / totalWidth;
-          }
-          else {
-            let remainingWidth = e.nativeEvent.layout.width - extraWidth;
-            if (remainingWidth < 50) remainingWidth = 50;
-            scale = remainingWidth / this.svgViewBox.width;
-          }
-          if (scale > 1) scale = 1;
-
-          let scaledSvgWidth = scale * this.svgViewBox.width;
-          let scaledSvgHeight = 1.0 * scaledSvgWidth
-            * this.svgViewBox.height / this.svgViewBox.width;
-
-          if (scaledSvgHeight > e.nativeEvent.layout.height
-           && e.nativeEvent.layout.height > 0) {
-            scale *= e.nativeEvent.layout.height / scaledSvgHeight;
-            scaledSvgHeight = e.nativeEvent.layout.height;
-            scaledSvgWidth = scale * this.svgViewBox.width;
-          }
-
-          let tx = -this.svgViewBox.width  * (1 - scale) / 2;
-          let ty = -this.svgViewBox.height * (1 - scale) / 2;
-
-          let maxHeight = 0;  // Used only in dislay (not test) mode
-          if (!this.props.testMode) {
-            let totalWidth = this.svgViewBox.width + extraWidth;
-            let totalHeight = this.svgViewBox.height;
-            maxHeight = e.nativeEvent.layout.width * totalHeight / totalWidth;
-          }
-
-          this.diagramScale.setValue(scale);
-          this.diagramScaleLast = scale;
-          if (this.testLayout.scale) {
-            this.testScale.setValue(scale);
-            this.testScaleLast = scale;
-          }
-          this.diagramTranslate.setValue({ x: tx, y: ty });
-          this.diagramMaxHeight.setValue(maxHeight);
-        }}
+        onLayout={(e: LayoutChangeEvent) => this.handleLayoutChangeEvent(e)}
         style={[
           {
             //backgroundColor: "#F0F08080",
